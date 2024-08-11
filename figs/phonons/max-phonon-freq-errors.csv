@@ -1,0 +1,4 @@
+Model,Material ID,Formula,Max Ph Freq ML,Max Ph Freq DFT,Max Ph Freq Max Error,Max Error Rel
+M3GNet,mp-570130,Al6 H18,43.0864,63.424,-20.3377,-0.1627
+CHGNet,mp-642996,Li24 H36 Os6,40.6031,58.3423,-17.7393,-0.1419
+MACE-MP,mp-23803,Ga2 H2 O4,80.893,67.8605,13.0325,0.1043
