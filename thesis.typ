@@ -1,5 +1,5 @@
 #import "template.typ": template, title-page, remark, subfigure, par-heading, ord, mp-link, si0, si1, si4, percent, num-fmt
-#import "@preview/xarrow:0.3.0": xarrow
+#import "@preview/xarrow:0.3.1": xarrow
 #import "@preview/cetz:0.2.2": canvas, plot, draw
 // https://github.com/schang412/typst-whalogen
 // ce(str) used to render chemical formulas
@@ -7,7 +7,7 @@
 
 
 // thesis metadata
-#let title = "Towards Machine Learning Foundation Models\nfor Materials Chemistry"
+#let title = "Towards Machine Learning Foundation Models for Materials Chemistry"
 #let supervisor = "Alpha Lee, Ulrich Keyser"
 #let advisors = ("Anubhav Jain", "Rhys Goodall", "Kristin Persson")
 #let examiners = ("Chris Pickard", "Aaron Walsh")
@@ -35,6 +35,8 @@
 #let mbd-repo-url = "https://github.com/janosh/matbench-discovery"
 #let mbd-site-url = "https://matbench-discovery.materialsproject.org"
 #let mp-relax-set-url = "https://github.com/materialsproject/pymatgen/blob/4ec5e5a49/pymatgen/io/vasp/sets.py#L1223"
+#let pbe-sol = "PBEsol"
+#let r2scan = "r2SCAN"
 
 #let n-mp-entries = 154387
 #let n-mptrj-entries = 1580395
@@ -520,7 +522,7 @@ However, until recently, MLIPs have been severely limited in transferability, of
 The latest generation of high-body-order message-passing MLIPs @batzner_equivariant_2022 @batatia_mace_2023 @deng_chgnet_2023 @chen_universal_2022, have demonstrated a step-change in the ability to benefit from training on the largest and most diverse ab-initio databases available @jain_commentary_2013 @saal_materials_2013 @kirklin_open_2015 @schmidt_machinelearningassisted_2023 @merchant_scaling_2023 @chanussot_open_2021 @sriram_open_2023 @clausen_adapting_2024, yielding unprecedented applicability across diverse chemical spaces#footnote[How much of this transferability is true extrapolation as opposed to interpolation in a high dimensional space is debatable but also somewhat moot as utility is unlocked either way.].
 By learning rich, generalizable representations of atomic environments, these so-called _foundation models_ pre-trained on millions of crystal structures and their energies, forces, stresses, and more recently magnetic moments @deng_chgnet_2023 and response to external fields @falletta_unified_2024, have the potential to run a wide variety of materials simulation at near-DFT accuracy but orders of magnitude cheaper, or, conversely, at orders of magnitude larger length and time scales.
 They also serve as excellent starting points for both small and large-data fine-tuning in cases where out-of-the-box performance proves insufficient.
-This 'pre-train then fine-tune' paradigm marks the defining feature of a foundation model and is an advantage of deep learning not applicable to prior ML methods that lack transferrable end-to-end-learned internal representations.
+This 'pre-train then fine-tune' paradigm marks the defining feature of a foundation model and is an advantage of deep learning not applicable to prior ML methods that lack transferable end-to-end-learned internal representations.
 #cite(<bommasani_opportunities_2022>, form: "author") @bommasani_opportunities_2022 who coined the term 'foundation model' in the context of natural language processing (NLP) define them as models broadly applicable across a wide range of tasks and datasets, transferable to new tasks with minimal fine-tuning, and a strong baseline for further model development.
 In direct analogy to chemistry, we define *foundational ML force fields* in this thesis as models that are
 - trained on millions of chemical spaces covering much of the periodic table, thereby becoming
@@ -1301,7 +1303,7 @@ This makes them most suitable for use in high-throughput (HT) searches to triage
 The use of neural networks for learning the Kohn-Sham density-functional theory (DFT) potential energy surface (PES) can be traced as far back as #cite(<behler_generalized_2007>, form: "year") @behler_generalized_2007.
 This work kicked off rapid advances and significant efforts to fit ever more sophisticated ML models to known samples of the PES.
 Initially, most of these models were trained and deployed as interatomic potentials (also known as force fields) to study known materials of interest, a workflow that requires curating custom training data for each new system of interest @bartok_machine_2018 @deringer_general-purpose_2020.
-As larger and more diverse datasets have emerged from initiatives like the Materials Project (MP) @jain_commentary_2013, AFLOW @curtarolo_aflow_2012 or the Open Quantum Materials Database (OQMD) @saal_materials_2013, researchers have begun to train so-called universal models that cover 90 or more of the most-application relevant elements in the periodic table.
+As larger and more diverse datasets have emerged from initiatives like the Materials Project (MP) @jain_commentary_2013 @saal_materials_2013 @kirklin_open_2015 @schmidt_machinelearningassisted_2023 @merchant_scaling_2023 @chanussot_open_2021 @sriram_open_2023 @clausen_adapting_2024, researchers have begun to train so-called universal models that cover 90 or more of the most-application relevant elements in the periodic table.
 This enables new ways of ML-guided materials discovery across the periodic table in hopes of increasing the hit rate of stable crystals and speeding up DFT- and expert-driven searches.
 
 Progress in ML for materials is often measured according to performance on standard benchmark data sets.
@@ -1960,7 +1962,6 @@ That is, #mace-mp tends to underestimate the convex hull distance and therefore 
       dy: 2%,
     ),
   ),
-  gap: -1pt,
   caption: [
     *Convex hull distance error distributions projected onto elements weighted by composition for all WBM test materials.*
     We show the two best open models submitted to #mbd, #mace-mp @batatia_mace_2023 and #chgnet @deng_chgnet_2023.
@@ -1998,10 +1999,10 @@ However, our results in @sec:mlff-pes-softening investigating the origins of PES
 
 This reinforces the need for future models to train on more diverse datasets less biased towards near-equilibrium structures than #mptrj.
 The #link("https://alexandria.icams.rub.de")[Alexandria dataset] @schmidt_crystal_2021 @schmidt_machinelearningassisted_2023 offers a compelling choice for a highly diverse open dataset specifically engineered for training foundational GNN potentials.
-It contains PBE, PBEsol and SCAN data with a more even distribution of elements and crystal symmetries than MP which is heavily oxide-dominated (see @fig:mp-element-counts-by-occurrence).
+It contains PBE, #pbe-sol and SCAN data with a more even distribution of elements and crystal symmetries than MP which is heavily oxide-dominated (see @fig:mp-element-counts-by-occurrence).
 Alexandria's impressive size of over #si1(3e6) PBE geometry optimizations ($~20$x the size of MP), #si1(15e4) of which resulted in relaxed structures less than #si4[50meV/atom] above the convex hull, provide good coverage of both ground-state and metastable regions of the PES.
-The #link("https://github.com/materialsproject/atomate2/pull/532")[#matpes] collaboration will likewise help fill this data gap, which we launched in the second half of 2023 to generate an even higher-fidelity diverse MLFF training set at the r2SCAN level of theory with #ord(5) structures specifically sampled from high-temperature MLMD trajectories to cover far-from-equilibrium regions of the PES.
-At time of writing, #matpes has reached #si1(13e4) r2SCAN completed static calculations of #si1[300K] #m3gnet$$-MD snapshots with a similar number at #si1[600K] and #si1[900K] hopefully to be finished by the end of 2024.
+The #link("https://github.com/materialsproject/atomate2/pull/532")[#matpes] collaboration will likewise help fill this data gap, which we launched in the second half of 2023 to generate an even higher-fidelity diverse MLFF training set at the #r2scan level of theory with #ord(5) structures specifically sampled from high-temperature MLMD trajectories to cover far-from-equilibrium regions of the PES.
+At time of writing, #matpes has reached #si1(13e4) #r2scan completed static calculations of #si1[300K] #m3gnet$$-MD snapshots with a similar number at #si1[600K] and #si1[900K] hopefully to be finished by the end of 2024.
 #matpes uses the latest `PBE_64` VASP pseudo-potentials which offer increased accuracy for several rare-earth elements as well as finer convergence settings than #link(mp-relax-set-url)[`MPRelaxSet`] which generated all data in #mptrj.
 
 // To realize the full potential of these models, we will need to pivot significant resources to generate large quantities of higher-than-PBE fidelity training data.
@@ -2208,7 +2209,7 @@ Our results achieve a larger number of materials beyond the highest $Φ_M$ isoli
 We also achieve a higher hit rate per DFPT calculation of such high-merit materials as shown in @tab:diel-hit-rate-comparison.
 For ref.~@qu_high_2020, $15 \/ 441 = #percent(15 / 441)$ of materials achieve $Φ_M > #diel-high-fom-tresh$, while ref.~@petousis_high-throughput_2017 reaches $7 \/ 139 = #percent(7 / 139)$ and our data has $#n-diel-dfpt-fom-gt-tresh \/ #num-fmt(n-diel-dfpt-us) = #percent(n-diel-dfpt-fom-gt-tresh / n-diel-dfpt-us)$ materials with $Φ_M > #diel-high-fom-tresh$.
 Note that our hit rate increases even further when posthoc excluding metals, i.e. filtering the hit rate analysis for materials with a band gap of at least #si1[0.1eV].
-While the other works started from DFT structures with known band gaps and hence were able to filter out metals from the outset, the same is not possible when generating novel crystals with unknown electronic structures.
+While the other works started from DFT structures with known band gaps and hence were able to filter out metals from the outset, the same is not possible when generating novel crystals with unknown band gaps.
 Our workflow instead relies on ML band gap prediction to filter out metals.
 This step unfortunately suffers from a high false positive rate (metals misclassified as semiconductors/insulators).
 By upgrading to a better band gap model, a future realization of our workflow could achieve a high-merit hit rate over $#n-diel-dfpt-fom-gt-tresh \/ #num-fmt(n-diel-dfpt-nonmetal) = #percent(n-diel-dfpt-fom-gt-tresh / n-diel-dfpt-nonmetal)$.
@@ -2390,7 +2391,7 @@ Further details on synthesis development, equipment used and XRD fitting for bot
   ],
 )<fig:exp-diel-characterization>
 
-Having selected, synthesized at high purity, and confirmed the structures of #CTTO and #BZO, we investigate their physical properties.
+Having selected, synthesized at high purity, and confirmed the structures of #CTTO and #BZO, we investigate their physical properties in @fig:exp-diel-characterization.
 The band gaps of both materials were identified using UV-vis impedance spectroscopy on powders using diffuse reflectance and an integrating sphere.
 These data can be seen in @fig:exp-diffuse-reflectance and they were modified and fit using the Kubelka Munk @kubelka_article_1931 equation to extract the bandgap, seen in @fig:exp-tauc-bandgaps.
 @fig:exp-diffuse-reflectance shows diffuse reflectance measurements for #CTTO and #BZO exhibiting distinctive absorption edges.
@@ -3051,7 +3052,7 @@ Recent years saw the rise of narrow ML interatomic potentials, custom-trained fo
 Their main drawback is the significant time and human effort needed to generate bespoke training sets (usually from DFT reference data) when then used for model training and validation which are equally time-consuming and need to be repeated for each material class of interest @deringer_gaussian_2021.
 This recurring upfront data curation cost that must be paid for every new chemical system is a major inhibitor to their widespread adoption and use by non-experts.
 
-It would mark a crowning achievement to the lineage of work started nearly two decades ago by #cite(<behler_generalized_2007>, form: "prose") if we succeeded at training a single model whose compute cost scales linearly with system size yet accurately describes the potential energy surface (PES) across all chemical and structural spaces.
+It would mark an important milestone in the lineage of work started nearly two decades ago by #cite(<behler_generalized_2007>, form: "prose") if we succeeded at training a single model whose compute cost scales linearly with system size yet accurately describes the potential energy surface (PES) across all chemical and structural spaces.
 This would enable reliable molecular dynamics (MD) simulations over unprecedented time scales and system sizes, opening up the immediate study of important physical processes that can only be studied in all-atom simulations of systems containing many thousands of atoms.
 These include vexing problems that have inhibited our understanding and resisted the rapid improvement of more performant sustainability-related materials such as metal-organic frameworks for direct air capture or solid-electrolyte interphases for increasing cycle life of batteries.
 Even though the physical laws that govern their behavior were discovered a century ago @dirac_quantum_1929, actually simulating the outcome of these laws for large systems or over long-time scales needed for complex chemical reaction processes remains inaccessible to DFT even with today's largest computers.
@@ -3262,8 +3263,12 @@ In addition, we remove the non-analytic corrections derived from Born charges wh
 These corrections could be obtained even without changes to the model by a hybrid workflow that performs a DFT static calculation on the MLFF-relaxed structure to obtain Born effective charges and posthoc apply the resulting non-analytic corrections to the MLFF phonon spectrum.
 Since we are mainly interested in the part of the phonon spectrum the model *can* predict in order to gain an understanding of the fidelity of #mace-mp restorative forces, we did not pursue this more involved workflow.
 However, we hope to soon provide an off-the-shelf implementation of this hybrid workflow compatible with all force fields in `atomate2` @ganose_atomate2_2024 (currently #chgnet, #mace-mp, #m3gnet, GAP, #nequip and #sevennet).
-While MP also provides phonons for several thousand compounds, we do not use those as reference data since MP phonons were calculated with DFPT calculations using PBEsol @perdew_restoring_2008, a functional incompatible with the #mptrj training set.
-While DFPT and finite displacement harmonic phonons should in principle give comparable results (when run with the same functional), we were unsure how much to rely on that in practice.
+Both MP @jain_commentary_2013 and PhononDB @togo_firstprinciples_2023 provide phonons for several thousand compounds, calculated with density functional perturbation theory (DFPT) and frozen phonons, respectively.
+Unfortunately, both databases opted to use the #pbe-sol functional for their phonon calculations, introducing a systematic error when benchmarking models trained on PBE data.
+#pbe-sol phonon spectra tend to be slightly stretched compared to PBE, i.e. high frequencies in particular are slightly higher with #pbe-sol due to stiffer bonds.
+As such any underpredictions, especially of the highest frequency modes, cannot be purely attributed to model error.
+However, the error contribution from systematic differences between PBE forces seen during training and #pbe-sol forces giving rise to the reference phonon spectra is likely small.
+While DFPT and the frozen phonon method using the same flavor of DFT should in principle give comparable results, we chose PhononDB as our source of reference data to eliminate another potential source of systematic discrepancy, however minor, between reference data and model predictions.
 
 === Results
 <sec:phonon-results>
@@ -3451,14 +3456,14 @@ Work is ongoing on a more comprehensive phonon analysis that may shed light on t
       image("figs/phonons/ffonon-metrics-table-tol=0.01.svg"),
       pos: bottom + center,
       dy: 8pt,
-      label: <fig:ffonon-regr-metrics-table>,
+      label: <tab:ffonon-regr-metrics-table>,
       caption: [$Omega_"max"$ and phonon DOS regression metrics],
     ),
   ),
   gap: 2em,
   caption: [
     *#mace-mp comes closer to being a universal ML phonon simulator and dynamic stability predictor than #chgnet and #m3gnet.*
-    Phonon band structure and density of states metrics averaged over #phonon-analysis-mp-ids.len() randomly chosen MP materials.
+    Prediction metrics comparing MLFF with PhononDB #pbe-sol band structures and density of states averaged over #phonon-analysis-mp-ids.len() randomly chosen MP materials.
     Tolerance for the presence of imaginary frequencies was set to #si4(num-mode: "format")[0.01THz].
     The color scale goes from white = poor to dark blue = good performance.
     With the notable exception of false negative rate (FNR) and recall for the presence of imaginary phonon modes an any $q$-point, #mace-mp outperforms #chgnet and #m3gnet in all metrics.
@@ -3472,7 +3477,7 @@ That is, #mace-mp will predict a dynamically unstable structure as stable almost
 In return, however, #mace-mp achieves a much lower false positive rate (FPR) which measures the fraction of PBE-dynamically stable structures that are predicted as unstable.
 #mace-mp's FPR = 0.12 compares very favorably to #chgnet's 0.87 and #m3gnet's 0.63.
 
-In @fig:ffonon-regr-metrics-table, $R^2_Omega_"ph DOS"$ and $R^2_Omega_"max"$ measure how much of the variation in the discretized PBE phonon DOS and the highest phonon frequency across the #phonon-analysis-mp-ids.len() test materials is captured by each model.
+In @tab:ffonon-regr-metrics-table, $R^2_Omega_"ph DOS"$ and $R^2_Omega_"max"$ measure how much of the variation in the discretized PBE phonon DOS and the highest phonon frequency across the #phonon-analysis-mp-ids.len() test materials is captured by each model.
 
 #figure(
   image("figs/phonons/parity-pbe-vs-ml-max-freq.svg", width: 80%),
@@ -3561,7 +3566,7 @@ They indicate significant potential for ML force fields to become accurate unive
   ],
 )<tab:phonon-mp-ids>
 
-@fig:violin-ph-min-max-freq shows the distribution of errors in the highest and lowest phonon frequencies for #phonon-analysis-mp-ids.len() randomly chosen MP materials.
+@fig:violin-ph-min-max-freq shows the distribution of errors in the highest and lowest phonon frequencies comparing to PhononDB #pbe-sol results for #phonon-analysis-mp-ids.len() randomly chosen MP materials.
 $Delta Omega_"max"$ strongly skews negative for all 3 models, indicating a systematic underestimation of the highest phonon frequency.
 #mace-mp has the most sharply peaked and closest-to-zero $Delta Omega_"max"$ distribution.
 The green-shaded area indicating ±#si1[1.5THz] $Delta Omega_"max"$ contains the modes of $Delta Omega_"max"$ for #mace-mp and #chgnet while #m3gnet has a larger error and falls outside this range.
@@ -3831,28 +3836,28 @@ This compares favorably to the $R^2$ value of 0.757 reported for #mace-mp @chen_
 
 #remark[
   Work in this section was led by #link("https://scholar.google.com/citations?user=PRPXA0QAAAAJ")[Bowen Deng] at University of California, Berkeley, USA and a preprint published separately from other sections in this chapter in @deng_overcoming_2024, currently under review at npj Computational Materials.
-  I wrote and ran the code for the phonon analysis, helped draft and edit the manuscript, and advised the #mace-mp analysis in other sections.
-  Text and figures adapted with permission from #cite(<deng_overcoming_2024>, form: "author")
+  I wrote and ran the code for the phonon analysis, helped draft and edit the manuscript, and advised the #mace-mp analysis in other sections of the paper.
+  Text and figures adapted with permission from #cite(<deng_overcoming_2024>, form: "author") @deng_overcoming_2024.
 ]
 
 #figure(
   move(dx: -4pt)[#image("figs/soft-pes/dft-vs-ml-pes.svg", width: 100%)],
   caption: [
-    *PES softening occurs due to 2 biases: preferential sampling of low-energy configurations in current DFT pre-training datasets and built-in smoothness of ML potentials.*
-    Schematic representation of the PES where the two coordinate axes illustrate arbitrary dimensions in atomic configuration space.
-    Ideally, the ML and DFT PES should match.
+    *PES softening occurs due to 2 biases: preferential sampling of low-energy configurations in current DFT pre-training datasets and bias towards PES smoothness built into ML potentials.*
+    The two coordinate axes illustrate arbitrary dimensions in atomic configuration space and the height of the surface the energy of the corresponding structure.
+    Ideally, the DFT PES (left) and ML PES (right) should match.
     In practice, we consistently observe (across #chgnet, #mace-mp, #m3gnet) that the ML PES only accurately describes the well-sampled dark blue regions populated by near-equilibrium states in #mptrj (indicated by orange points).
-    The ML PES exhibits significant systematic errors in high-energy, far-from-equilibrium yellow regions (indicated by the points) due to lack of training data.
+    The ML PES exhibits significant systematic errors in high-energy, far-from-equilibrium yellow-colored regions (indicated by red points) due to lack of nearby training data.
     ML potentials are designed to smoothly vary output with respect to changes in input which incurs a bias towards flat energy surfaces.
-    This bias causes energies and forces in unsampled high-energy regions of atomic configuration space to be systematically underpredicted.
-    Since PES softening causes systematic errors, it can be efficiently rectified by a linear correction fitted to minimal additional training data.
+    This bias causes energies and forces in unsampled high-energy regions of configuration space to be systematically underpredicted.
+    Since PES softening errors are systematic, they can be efficiently rectified by a linear correction fitted to minimal additional training data.
     In fact, a single additional training label at any of the red points can fit a scalar energy multiplier that rescales the gradients of the PES, on average eliminating the systematic error.
     @fig:force-parity-chgnet-fine-tuned demonstrates this works in practice, including across diverse chemical spaces (@fig:soft-pes-force-error-violins-linear-correction).
   ],
 )<fig:soft-pes-dft-vs-ml>
 
 All simulation and prediction tasks involving high-energy configurations in @riebesell_foundation_2023 and @deng_overcoming_2024 reveal a consistent misalignment of DFT and ML potential energy surfaces (PES) across all 3 MLFFs we tested (#chgnet, #mace-mp, #m3gnet).
-This so-called PES softening is characterized by weaker curvature of the ML PES compared to the DFT PES, resulting in the systematic underprediction of energies and forces in far-from-equilibrium regions, as illustrated in @fig:soft-pes-dft-vs-ml and quantified through the PES softening scale $c_S$ shown in @fig:soft-pes-linear-correction.
+This so-called PES softening is characterized by weaker curvature of the ML compared to the DFT PES, resulting in the systematic underprediction of energies and forces in far-from-equilibrium regions, as illustrated in @fig:soft-pes-dft-vs-ml and quantified through the PES softening scale $c_S$ shown in @fig:soft-pes-linear-correction.
 It shows the tilted distribution of ML-predicted vs DFT forces for the specific compound #ce("Li2B3PO8") (@fig:slanted-off-equi-force-parity) and the distribution of softening scales for #m3gnet, #chgnet and #mace-mp across various chemical systems for 1000 randomly sampled WBM compounds (@fig:softening-scale-violins).
 // TODO fix wrong number in figure ref, +1 of actual number
 
@@ -3922,6 +3927,10 @@ Fine-tuning the model with 10 DFT labels further decreases the force MAE to #si4
 )<fig:soft-pes-fine-tuning>
 
 As further evidence to establish the issue of PES softening in current MLFFs, @fig:violin-ph-max-freq-div plots the relative underestimation of DFT vs ML $Omega_"max"$, the highest phonon band frequency of a crystal.
+#footnote[
+  Frequency underpredictions in @fig:soft-pes-phonon may be partially due to comparing to #pbe-sol reference while all models are trained on PBE data which tends to have softer phonons.
+  Comparison to actual PBE reference data is underway and will allow quantifying the degree of systematic error in this analysis which is expected to be minor given the small difference between #pbe-sol and PBE phonons relative to the significant ML softening.
+]
 Excluding materials with a low relative error of $±5%$, #mace-mp's strongly underestimates $Omega_"max"$ by more than 5% in 52% of cases whereas it overestimates it by more than 5% in only 1%.
 For #chgnet (52% vs 1%) and #m3gnet (84% vs 2%), this imbalance is even more pronounced.
 #mace-mp has a noticeably more peaked error distribution with a mode that falls into the green-shaded area.
@@ -3929,6 +3938,7 @@ As a result, 58% of #mace-mp predictions are within $±5%$ relative error compar
 
 @fig:violin-ph-min-freq-sub shows $Omega_"min"$, the lowest phonon frequency at any $q$-point.
 (Unlike $Omega_"max"^"ML" \/ Omega_"max"^"PBE"$, plotting the ratio of $Omega_"min"^"ML" \/ Omega_"min"^"PBE"$ does not make sense as frequently $Omega_"min" = 0$.)
+
 #let mp-1784-dft-ph-max-feq = 6.652
 #let mp-1784-mace-ph-max-feq = 5.936
 #let mp-1784-chgnet-ph-max-feq = 5.412
@@ -4024,7 +4034,7 @@ Yet many limitations in the current version remain.
 Foremost, the #mptrj training set was generated at the PBE-level of theory @perdew_rationale_1996, which requires Hubbard $U$ corrections to improve electronic correlations for particular transition metal--anion or metal--transition metal combinations.
 This introduces inconsistencies in the PES that again must be posthoc compensated~@jain_computational_2016, introducing a source of confusion for the model since two materials with similar chemistries may now have inconsistent energies if one contains a $U$-corrected element-pair and the other does not.
 PBE is also well-known to lack long-range dispersive forces which therefore #mace-mp likewise fails to model, requiring the addition of posthoc dispersion force corrections such as D3 @grimme_consistent_2010.
-Recent developments in DFT around the r2SCAN @sun_strongly_2015 @bartok_regularized_2019 @furness_accurate_2020 meta-GGA functional are beginning to supersede PBE by achieving significantly improved accuracy at acceptable increase in computational cost @kingsbury_performance_2022.
+Recent developments in DFT around the #r2scan @sun_strongly_2015 @bartok_regularized_2019 @furness_accurate_2020 meta-GGA functional are beginning to supersede PBE by achieving significantly improved accuracy at acceptable increase in computational cost @kingsbury_performance_2022.
 With future computing power, hybrid functionals~@heyd_hybrid_2003 @henderson_accurate_2011 or the random phase approximation~@harl_assessing_2010 may become affordable enough to generate fine-tuning datasets and improve upon this even further, albeit at huge cost by today's standards.
 Refitting the model to a more modern functional will significantly increase its predictive power and simultaneously reduce the need for system-dependent corrections, making it more universally applicable and closer to a plug-and-play tool that can be used even by non-experts.
 
@@ -4054,7 +4064,7 @@ It also has an incomplete picture of physical forces given GGA's lack of long-ra
 / Training set augmentation: Increasing the number and variety of atomic configurations for training is likely to unlock by far the biggest gains in accuracy and versatility given the performance of proprietary models such as #gnome and #link("https://matlantis.com/news/pfp-validation-for-public-v5-0-0")[PFP] which trained on $1-2$ orders of magnitude larger datasets than #mptrj.
 
 Efforts to alleviate current limitations around data inconsistency and size are ongoing.
-We started an open source #link("https://github.com/materialsproject/atomate2/pull/532")[#matpes] collaboration with Shyue Ping Ong's group mid-last year aiming to create one of the largest and most diverse r2SCAN-level datasets specifically designed for ML potential training.
+We started an open source #link("https://github.com/materialsproject/atomate2/pull/532")[#matpes] collaboration with Shyue Ping Ong's group mid-last year aiming to create one of the largest and most diverse #r2scan$$-level datasets specifically designed for ML potential training.
 However, even in its current form, #mace-mp serves as a good starting point for both data- and compute-efficient fine-tuning.
 How much additional data is needed for such refinement depends on the required accuracy and degree of departure from the training set @gardner_synthetic_2024.
 In many cases, we expect a fine-tuning set of hundreds of examples to be sufficient.
@@ -4245,7 +4255,7 @@ To realize the full potential of ML foundation models, several challenges must b
 
 - Increasing *data fidelity*.
   All current universal potentials are fitted to PBE-level data which has known accuracy limitations.
-  Refitting to r2SCAN @furness_accurate_2020 @kingsbury_performance_2022 is a highly promising avenue to improve accuracy and reduce the need for posthoc corrections.
+  Refitting to #r2scan @furness_accurate_2020 @kingsbury_performance_2022 is a highly promising avenue to improve accuracy and reduce the need for posthoc corrections.
 
 == Discovering Pareto Optimal Materials
 <sec:outlook-pareto-optimal-materials>
@@ -4622,13 +4632,13 @@ Perhaps unsurprising given continuous improvements in model accuracy with increa
 
 // list figures not referenced in the text (shows nothing if there are none)
 // https://github.com/typst/typst/issues/3546
-#locate(loc => {
-  let fig-labels = query(figure, loc)
+#context {
+  let fig-labels = query(figure)
     .filter(
       fig => fig.has("label") and fig.kind != "subfigure"
     )
     .map(fig => fig.label)
-  let all-refs = query(ref, loc).map(ref => ref.target)
+  let all-refs = query(ref).map(ref => ref.target)
   let unreferenced = fig-labels.filter(label => label not in all-refs)
   if (unreferenced.len() > 0) {
     set heading(numbering: none)
@@ -4642,7 +4652,7 @@ Perhaps unsurprising given continuous improvements in model accuracy with increa
       - #ref
     ]
   }
-})
+}
 
 // Typst code formatted with: typstyle --inplace thesis.typ --column 100
 // --column: max width of the output [default: 80]

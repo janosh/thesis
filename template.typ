@@ -1,5 +1,7 @@
 #let subfigure-kind = "subfigure"
 
+#let subfigure-counter = counter(figure.where(kind: subfigure-kind))
+
 #let subfigure(
   body,
   pos: bottom + center,
@@ -12,7 +14,8 @@
   supplement: none,
   placement: top,
 ) = {
-  // adapted from https://github.com/typst/typst/issues/246#issuecomment-1910046540
+  subfigure-counter.step()
+
   let fig = figure(
     body,
     caption: none,
@@ -23,13 +26,11 @@
     placement: placement,
   )
 
-  let sub-fig-num = locate(loc => {
-    query(selector(figure).before(loc), loc).last().counter.display(numbering)
-  })
+  let sub-fig-num = subfigure-counter.display(numbering)
   if caption != "" and separator == none { separator = ":" }
-  caption = [#supplement #sub-fig-num#separator #caption]
+  let caption-content = [#supplement #sub-fig-num#separator #caption]
 
-  return [#fig #label #place(pos, dx: dx, dy: dy, caption)]
+  return [#fig #label #place(pos, dx: dx, dy: dy, caption-content)]
 }
 
 #let template(body) = {
@@ -123,12 +124,7 @@
   // reset subfigure counter when out of the parent figure
   show figure: itm => {
     if itm.kind != subfigure-kind {
-      locate(loc => {
-        let qry = query(figure.where(kind: subfigure-kind).after(loc), loc)
-        if qry == () { return }
-        let sub-fig-counter = qry.first().counter
-        sub-fig-counter.update(0) // reset the subfigure counter once out of the parent figure
-      })
+      subfigure-counter.update(0)
     }
     itm
   }
@@ -136,10 +132,10 @@
     let elem = itm.element
     // TODO if inside the subfigure's caption, directly reference the subfigure label without prefixing the figure counter
     if elem != none and elem.func() == figure and elem.kind == subfigure-kind {
-      locate(loc => {
-        let qry = query(figure.where(outlined: true).before(itm.target), loc).last()
+      context {
+        let qry = query(figure.where(outlined: true).before(itm.target)).last()
         if qry.has("label") { return ref(qry.label) }
-      })
+      }
     }
     itm
   }
@@ -165,7 +161,8 @@
   set text(font: "New Computer Modern Sans")
   set align(center)
 
-  text(size: 2em, weight: 700, title)
+  text(size: 2.2em, weight: 700, title)
+
   v(1cm)
   if logo != none {
     image(logo, width: 26%)
