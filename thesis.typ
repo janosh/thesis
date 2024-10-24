@@ -1,6 +1,20 @@
-#import "template.typ": template, title-page, remark, subfigure, par-heading, ord, mp-link, si0, si1, si4, percent, num-fmt
+#import "template.typ": (
+  template,
+  title-page,
+  remark,
+  subfigure,
+  par-heading,
+  ord,
+  mp-link,
+  si0,
+  si1,
+  si4,
+  percent,
+  num-fmt,
+)
 #import "@preview/xarrow:0.3.1": xarrow
-#import "@preview/cetz:0.2.2": canvas, plot, draw
+#import "@preview/cetz:0.3.1": canvas, draw
+#import "@preview/cetz-plot:0.1.0": plot
 // https://github.com/schang412/typst-whalogen
 // ce(str) used to render chemical formulas
 #import "@preview/whalogen:0.1.0": ce
@@ -12,7 +26,8 @@
 #let advisors = ("Anubhav Jain", "Rhys Goodall", "Kristin Persson")
 #let examiners = ("Chris Pickard", "Aaron Walsh")
 #let author = "Janosh Riebesell"
-#let submission-date = "Apr 2024"
+#let submission-date = "June 2024"
+#let college = "St. Catherine's College"
 #let uni = "University of Cambridge"
 #let department = "Department of Physics"
 
@@ -88,13 +103,20 @@
     "materials science",
   ),
   uni: uni,
+  college: college,
   department: department,
   logo: "figs/cambridge-crest.svg",
 )
 
-#align(center, [= Abstract])
-
 // TODO define the term "foundation model for materials chemistry"
+
+= Declaration of Authorship
+<sec:declaration>
+
+This thesis is the result of my own work and includes nothing which is the outcome of work done in collaboration except as declared in the preface and specified in the text. It is not substantially the same as any work that has already been submitted, or, is being concurrently submitted, for any degree, diploma or other qualification at the University of Cambridge or any other University or similar institution except as declared in the preface and specified in the text. It does not exceed the prescribed word limit for the relevant Degree Committee.
+
+= Abstract
+<sec:abstract>
 
 This thesis demonstrates how recent advances in machine learning (ML) for materials can accelerate our search for new stable inorganic crystals.
 We show how best to measure and compare the utility of different models, what range of applications a foundational ML force field can be expected to cover, what remaining shortcomings current ML potentials exhibit and how some of them can be overcome.
@@ -108,21 +130,8 @@ While pre-trained purely on inorganic bulk crystals, it exhibits unexpected extr
 Taken together, these projects showcase how graph neural network (GNN) force fields can form a central pillar of computational materials science, inhabiting a different point on the cost-accuracy Pareto front than DFT, not much worse in accuracy yet orders of magnitude cheaper thanks to linear instead of cubic scaling with system size.
 Machine learning force fields have thus unlocked the study of complex phenomena over length and time scales previously inaccessible to numerical simulation.
 
-#pagebreak()
-#v(1fr)
-
-= Declaration of Authorship
-<sec:declaration>
-
-I, #emph(author), confirm that the work presented in this thesis is my own.
-Where information has been derived from other sources, I confirm that this has been indicated in the text.
-
 #v(1cm)
-#grid(
-  columns: 2,
-  gutter: 1fr,
-
-)[#uni, #submission-date][#author]
+#grid(columns: 2, gutter: 1fr)[#uni, #submission-date][#author]
 #pagebreak()
 
 = Acknowledgements
@@ -424,7 +433,9 @@ Databases like
   ("Materials Cloud", "https://materialscloud.org", <talirz_materials_2020>),
   ("NOvel MAterials Discovery (NOMAD)", "https://nomad-lab.eu", <draxl_nomad_2018>),
 ).enumerate() {
-  [#if idx > 0 {", "} #link(url, db_name) #cite(ref)]
+  [#if idx > 0 {
+      ", "
+    } #link(url, db_name) #cite(ref)]
 }
 have been instrumental in pushing in this direction for over a decade as can be seen in @fig:mp-growth by example of MP's roughly linear data (@fig:mp-data-growth) and exponential user growth (@fig:mp-user-growth) since its inception in 2011.
 
@@ -460,6 +471,7 @@ The rapid progress of ML for materials in recent years has led to property predi
     gutter: 1em,
     [- molecular electronic properties @faber_prediction_2017],
     [- direct property prediction @dunn_benchmarking_2020 @choudhary_large_2023],
+
     [- IS2RE#footnote[IS2RE = Initial Structure to Relaxed Energy.
     Terminology introduced by @chanussot_open_2021] stability @riebesell_matbench_2023 @chanussot_open_2021 @merchant_scaling_2023 @jang_structurebased_2020 @mok_directionbased_2022],
     [- driving diverse simulations @riebesell_foundation_2023 @takamoto_teanet_2022 @takamoto_towards_2022 @deng_chgnet_2023 @chen_universal_2022],
@@ -820,7 +832,7 @@ Hybrid functionals such as HSE include a fraction $a in (0, 1)$ (e.g. $a = 0.25$
 $
   E_x^"HF"
   = -1 / 2 sum_(i eq.not j) sum_(sigma=arrow.t arrow.b) integral.double "d "^3r_1 "d "^3r_2
-    (Psi_i^*(vector(r)_1) Psi_j^*(vector(r)_2) Psi_i (vector(r)_1) Psi_j (vector(r)_2)) / (|vector(r)_1 - vector(r)_2|),\
+  (Psi_i^*(vector(r)_1) Psi_j^*(vector(r)_2) Psi_i (vector(r)_1) Psi_j (vector(r)_2)) / (|vector(r)_1 - vector(r)_2|),\
 $<eqn:hf-exchange>
 
 where $i$ and $j$ sum over electron pairs and $Psi_i$ are the Kohn-Sham orbitals.
@@ -900,9 +912,10 @@ Since deep learning representations are not limited by domain knowledge and huma
 Empirically, end-to-end learned representations generally outperform hand-crafted features once training data exceeds a domain-dependent threshold, often on the order of $gt.tilde #ord(4)$ samples @chauhan_comparison_2019 @goodall_predicting_2020 @benkendorf_effects_2020 @cho_how_2016.
 
 #let size = (9, 5)
-#let relu(x) = if x < 0 { 0 } else { x }
-#let gelu(x) = 0.5 * x * (1 + calc.tanh(calc.sqrt(2 / calc.pi) * (x + 0.044715 * calc.pow(x,3))))
-#let leaky-relu(x) = if x < 0 { 0.03 * x } else { x }
+#let relu(x) = calc.max(0, x)
+#let gelu(x) = 0.5 * x * (1 + calc.tanh(calc.sqrt(2 / calc.pi) * (x + 0.044715 * calc.pow(x, 3))))
+#let leaky-relu(x) = calc.max(0.05 * x, x)
+}
 #let sigmoid(x) = 1 / (1 + calc.exp(-x))
 #let tanh(x) = (calc.exp(x) - calc.exp(-x)) / (calc.exp(x) + calc.exp(-x))
 
@@ -912,8 +925,8 @@ Empirically, end-to-end learned representations generally outperform hand-crafte
       size: size,
       y-tick-step: 2,
       x-tick-step: 2,
-      legend: "legend.inner-north-west",
-      legend-style: (item: (spacing: 0.2)),
+      legend: "inner-north-west",
+      legend-style: (item: (spacing: 0.2), stroke: none, fill: rgb(255, 255, 255, 150)),
       {
         plot.add-hline(0, style: (stroke: 0.5pt))
         plot.add-vline(0, style: (stroke: 0.5pt))
@@ -928,7 +941,9 @@ Empirically, end-to-end learned representations generally outperform hand-crafte
             style: (stroke: color + 1.5pt),
             domain: (-4, 4),
             func,
-            label: key + if ref != none {" " + cite(ref)},
+            label: key + if ref != none {
+              " " + cite(ref)
+            },
           )
         }
       },
@@ -1010,9 +1025,7 @@ In the message passing step $t$, each node $i$ aggregates the messages $vector(m
 
 $
   vector(m)_i^((t))
-  = plus.circle.big_(j in cal(N)(i)) M_(t)(
-    vector(h)_i^((t)), vector(h)_j^((t)), vector(e)_(i j)^((t))
-  )
+  = plus.circle.big_(j in cal(N)(i)) M_(t)(vector(h)_i^((t)), vector(h)_j^((t)), vector(e)_(i j)^((t)))
 $<eqn:message-passing>
 
 where $M_t$ is a differentiable and thus trainable message function (usually a small feed-forward neural network) and $plus.circle.big$ is a permutation-invariant aggregation operator (e.g. sum, mean, min, max).
@@ -1080,7 +1093,7 @@ NequIP @batzner_equivariant_2022 uses Clebsch-Gordan tensor products to construc
 $
   [M_t(vector(h)_i^((t)), vector(h)_j^((t)), vector(e)_(i j)^((t)))]_(k'q')
   = sum_(k thin q thin k'' q'') C_(k q k''q'')^(k'q')
-    dot [vector(h)_j^((t))]_(k q) dot [vector(e)_(i j)^((t))]_(k''q'')
+  dot [vector(h)_j^((t))]_(k q) dot [vector(e)_(i j)^((t))]_(k''q'')
 $<eqn:nequip-message>
 
 where $[dot]_(k q)$ denotes the component of a feature vector transforming as the irreducible representation of $S O(3)$ with angular frequency $k$ and phase $q$, and $C_(k q k''q'')^(k'q')$ are the Clebsch-Gordan coefficients.
@@ -1163,16 +1176,18 @@ Force field development aims to expand the capabilities of (semi-)empirical mate
 This progression started with classical force fields (CFF), also known as empirical potentials, which typically model interactions as the sum of bonded and non-bonded energy terms.
 
 $
-E_"total" = E_"bonded" + E_"non-bonded"
+  E_"total" = E_"bonded" + E_"non-bonded"
 $
 
 where $E_"bonded"$ includes terms for bond stretching, angle bending, and bond torsions.
 In their most simplistic approximation using Hooke's law, these terms can be written as
 
 $
-E_"bonded"
-&= E_"bonds" + E_"angles" + E_"torsions"\
-&= sum_"bonds" k_r (r - r_0)^2 + sum_"angles" k_theta (theta - theta_0)^2 + sum_"torsions" k_phi [1 + cos(n phi - delta)],
+  E_"bonded"
+  &= E_"bonds" + E_"angles" + E_"torsions"\
+  &= sum_"bonds" k_r (r - r_0)^2 + sum_"angles" k_theta (theta - theta_0)^2 + sum_"torsions" k_phi [
+    1 + cos(n phi - delta)
+  ],
 $
 
 where $r$, $theta$, and $phi$ are bond lengths, angles, and dihedral angles with $r_0$, $theta_0$, and $phi_0$ their equilibrium values, while $k_r$, $k_theta$, $k_phi$, are force constants and $n$ and $delta$ are phase angles.
@@ -1180,9 +1195,11 @@ where $r$, $theta$, and $phi$ are bond lengths, angles, and dihedral angles with
 $E_"non-bonded"$ accounts for electrostatics and van der Waals interactions, the most simplistic approximation here being Lennard-Jones potentials.
 
 $
-E_"non-bonded"
-&= E_"electrostatics" + E_"van der Waals"\
-&= sum_(i<j) (frac(q_i q_j, 4pi epsilon_0 r_"ij") + 4epsilon_"ij" [(frac(sigma_"ij", r_"ij"))^12 - (frac(sigma_"ij", r_"ij"))^6]),
+  E_"non-bonded"
+  &= E_"electrostatics" + E_"van der Waals"\
+  &= sum_(i<j) (
+    frac(q_i q_j, 4pi epsilon_0 r_"ij") + 4epsilon_"ij" [(frac(sigma_"ij", r_"ij"))^12 - (frac(sigma_"ij", r_"ij"))^6]
+  ),
 $
 
 where $q_i$ and $q_j$ are the partial charges on atoms $i$ and $j$, $r_"ij"$ is the distance between them, $epsilon_0$ is the vacuum permittivity, $epsilon_"ij"$ and $sigma_"ij"$ are the Lennard-Jones parameters, and $k_r$, $k_theta$, $k_phi$, $n$, and $delta$ are force constants and phase angles for the bonded terms.
@@ -1216,7 +1233,7 @@ As a result, MLIPs offer essentially infinite functional flexibility able to mod
 A simple feed-forward neural network potential might take the form:
 
 $
-E = sum_i "NN"(G_i)
+  E = sum_i "NN"(G_i)
 $
 
 where $"NN"$ is a neural network and $G_i$ is a descriptor of the local atomic environment of atom $i$ used to predict each atom's contribution to the system's total energy $E$.
@@ -1466,7 +1483,7 @@ To test a wide variety of methodologies proposed for learning the potential ener
 
 + *#megnet* @chen_graph_2019 (GNN) - MatErials Graph Network is a GNN inspired by and similar to CGCNN originally intended mainly for property prediction of relaxed structures.
 It can incorporate global features (like pressure, temperature and entropy) in its message-passing operation.
-  This work showed that learned element embeddings encode periodic chemical trends and can be transfer-learned from large data sets (formation energies) to predictions on small data properties (band gaps, elastic moduli).
+This work showed that learned element embeddings encode periodic chemical trends and can be transfer-learned from large data sets (formation energies) to predictions on small data properties (band gaps, elastic moduli).
 
 + *CGCNN* @xie_crystal_2018 (GNN) - The Crystal Graph Convolutional Neural Network (CGCNN) was the first neural network model to directly learn eight different DFT-computed material properties from a graph representing the atoms and bonds in a periodic crystal.
   CGCNN was among the first to show that just like in other areas of ML, given large enough training sets, neural networks can learn embeddings that outperform human-engineered structure features directly from the data.
@@ -1812,10 +1829,13 @@ We observe this effect more for the energy-only models than the ML potentials.
     column-gutter: 1em,
     image("figs/mbd/rolling-mae-vs-hull-dist-wbm-batches-mace.svg"),
     image("figs/mbd/rolling-mae-vs-hull-dist-wbm-batches-chgnet.svg"),
+
     image("figs/mbd/rolling-mae-vs-hull-dist-wbm-batches-m3gnet.svg"),
     image("figs/mbd/rolling-mae-vs-hull-dist-wbm-batches-alignn.svg"),
+
     image("figs/mbd/rolling-mae-vs-hull-dist-wbm-batches-megnet.svg"),
     image("figs/mbd/rolling-mae-vs-hull-dist-wbm-batches-wrenformer.svg"),
+
     image("figs/mbd/rolling-mae-vs-hull-dist-wbm-batches-cgcnn.svg"),
     image("figs/mbd/rolling-mae-vs-hull-dist-wbm-batches-voronoi-rf.svg"),
   ),
@@ -2224,6 +2244,7 @@ By upgrading to a better band gap model, a future realization of our workflow co
     [This work @riebesell_pushing_2024],
     [#n-diel-dfpt-fom-gt-tresh / #num-fmt(n-diel-dfpt-us)],
     [#percent(n-diel-dfpt-fom-gt-tresh / n-diel-dfpt-us)],
+
     [This work (with $E_"gap" > 0.1$ eV)],
     [#n-diel-dfpt-fom-gt-tresh / #num-fmt(n-diel-dfpt-nonmetal)],
     [*#percent(n-diel-dfpt-fom-gt-tresh / n-diel-dfpt-nonmetal)*],
@@ -2292,6 +2313,7 @@ Even so, making #CTTO and #BZO required several trial-and-error iterations to op
         label: <fig:CsTaTeO6-b-site>,
       ),
     ),
+
     subfigure(
       image("figs/diel/exp-rietveld-Bi2Zr2O7-Fm3m.svg"),
       caption: [Fluorite Fm3m Rietveld fit for #BZO],
@@ -2361,6 +2383,7 @@ Further details on synthesis development, equipment used and XRD fitting for bot
       caption: [Optical band gap from Tauc],
       label: <fig:exp-tauc-bandgaps>,
     ),
+
     subfigure(
       [
         #image("figs/diel/exp-CsTaTeO6-diel-real-imag-loss-vs-freq.svg")
@@ -2796,6 +2819,7 @@ This consistency of the structural environments found in #CTTO with similar chem
         dy: -2pt,
         caption: [$Φ_M = ϵ_"tot" dot E_"gap"$],
       ),
+
       subfigure(
         image("figs/diel/ptable-per-elem-diel-ionic-pbe.svg"),
         label: <fig:diel-props-ptable-per-elem-diel-ionic-pbe>,
@@ -3156,6 +3180,7 @@ $<eqn:loss-huber-force>
       dy: -19pt,
       label: <fig:mace-mp-val-energy-mae>,
     ),
+
     subfigure(
       image("figs/mace-mp/mace-mp-train-curve-force-val-mae.svg", width: 100%),
       pos: bottom + left,
@@ -3291,6 +3316,7 @@ While DFPT and the frozen phonon method using the same flavor of DFT should in p
       dy: 8pt,
       label: <fig:bs-dos-pbe-vs-mace-mp-2998>,
     ),
+
     subfigure(
       image("figs/phonons/mp-985782-bs-dos-pbe-vs-mace-y7uhwpje.svg"),
       pos: top + left,
@@ -3340,6 +3366,7 @@ While DFPT and the frozen phonon method using the same flavor of DFT should in p
       dy: 8pt,
       label: <fig:bs-dos-pbe-vs-chgnet-mp-2998>,
     ),
+
     subfigure(
       image("figs/phonons/mp-985782-bs-dos-pbe-vs-chgnet-v0.3.0.svg"),
       pos: top + left,
@@ -4464,6 +4491,7 @@ Believing #mptrj to be an influential dataset for the near-term continued develo
       dy: -3pt,
       label: <fig:mp-trj-forces-hist>,
     ),
+
     subfigure(
       image("figs/mbd/mp-trj-stresses-hist.svg"),
       pos: top + left,

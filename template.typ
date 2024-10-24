@@ -26,11 +26,15 @@
     placement: placement,
   )
 
-  let sub-fig-num = subfigure-counter.display(numbering)
-  if caption != "" and separator == none { separator = ":" }
-  let caption-content = [#supplement #sub-fig-num#separator #caption]
+  if caption != "" and separator == none {
+    separator = ":"
+  }
 
-  return [#fig #label #place(pos, dx: dx, dy: dy, caption-content)]
+  context {
+    let sub-fig-num = subfigure-counter.display(numbering)
+    let caption-content = [#supplement #sub-fig-num#separator #caption]
+    return [#fig #label #place(pos, dx: dx, dy: dy, caption-content)]
+  }
 }
 
 #let template(body) = {
@@ -134,7 +138,9 @@
     if elem != none and elem.func() == figure and elem.kind == subfigure-kind {
       context {
         let qry = query(figure.where(outlined: true).before(itm.target)).last()
-        if qry.has("label") { return ref(qry.label) }
+        if qry.has("label") {
+          return ref(qry.label)
+        }
       }
     }
     itm
@@ -153,6 +159,7 @@
   submission-date: none,
   keywords: (),
   uni: "",
+  college: "",
   department: "",
   logo: none,
 ) = {
@@ -173,6 +180,8 @@
   v(3mm)
   text(size: 1.5em, uni)
   linebreak()
+  text(size: 1.5em, college)
+  linebreak()
   text(size: 1.5em, department)
 
   v(15mm)
@@ -184,7 +193,9 @@
   v(2cm)
 
   set align(left)
-  grid(columns: 2, gutter: 1em,
+  grid(
+    columns: 2,
+    gutter: 1em,
     [*Supervisors*], supervisor,
     [*Advisors*], advisors.join(", "),
     [*Examiners*], examiners.join(", "),
@@ -240,21 +251,37 @@
     panic("Invalid number contains more than 1 decimal: ", num)
   }
   // reverse the integer part to insert thousands separator
-  let integer-part = parts.at(0).rev().clusters().enumerate()
-    .map((item) => {
-      let (idx, value) = item
-      return value + if calc.rem(idx, 3) == 0 and idx != 0 { thousands }
-    }).rev().join("")
+  let integer-part = parts
+    .at(0)
+    .rev()
+    .clusters()
+    .enumerate()
+    .map(item => {
+        let (idx, value) = item
+        return value + if calc.rem(idx, 3) == 0 and idx != 0 {
+          thousands
+        }
+      })
+    .rev()
+    .join("")
   // if the number has a decimal part, store it
-  let decimal-part = if parts.len() == 2 { parts.at(1) }
+  let decimal-part = if parts.len() == 2 {
+    parts.at(1)
+  }
   // return the formatted number
-  return integer-part + if decimal-part != none { decimal + decimal-part }
+  return integer-part + if decimal-part != none {
+    decimal + decimal-part
+  }
 }
 
 // shared this function with the community
 // https://github.com/typst/typst/issues/3269#issuecomment-2032612522
 #let si-format(val, precision: 1, sep: "\u{202F}", binary: false, num-mode: "suffix") = {
-  let factor = if binary { 1024 } else { 1000 }
+  let factor = if binary {
+    1024
+  } else {
+    1000
+  }
   let gt1-suffixes = ("k", "M", "G", "T", "P", "E", "Z", "Y")
   let lt1-suffixes = ("m", "μ", "n", "p", "f", "a", "z", "y")
   let scale = ""
@@ -308,7 +335,9 @@
 #let si0 = si-format.with(precision: 0)
 #let si1 = si-format.with(precision: 1)
 #let si4 = si-format.with(precision: 4)
-#let percent(val, supplement: "%", precision: 1) = si-format(
-  val * 100,
-  precision: precision,
-) + supplement
+#let percent(val, supplement: "%", precision: 1) = (
+  si-format(
+    val * 100,
+    precision: precision,
+  ) + supplement
+)
