@@ -13,11 +13,11 @@
   num-fmt,
 )
 #import "@preview/xarrow:0.3.1": xarrow
-#import "@preview/cetz:0.3.1": canvas, draw
-#import "@preview/cetz-plot:0.1.0": plot
+#import "@preview/cetz:0.3.2": canvas
+#import "@preview/cetz-plot:0.1.1": plot
 // https://github.com/schang412/typst-whalogen
 // ce(str) used to render chemical formulas
-#import "@preview/whalogen:0.1.0": ce
+#import "@preview/whalogen:0.2.0": ce
 
 
 // thesis metadata
@@ -316,7 +316,7 @@ However, in unexplored chemical spaces, even high-energy structures may initiall
 Only thorough exploration can increase confidence that the known hull approximates the true hull and that phases predicted to be on the hull are truly stable.
 
 #figure(
-  image("figs/intro/convex-hull-of-stability.svg", width: 90%),
+  include "figs/intro/convex-hull-of-stability.typ",
   caption: [
     The convex hull of stability for a hypothetical A--X chemical system.
     The hull is spanned by the lowest energy surface in composition space.
@@ -326,7 +326,7 @@ Only thorough exploration can increase confidence that the known hull approximat
     ML-predicted hull distance $Δ E_d$, a.k.a. $E_"hull dist"$ hereafter, is the central property of interest in many parts of this thesis.
     The boxed reactions are what define the decomposition energies $Δ E_d$ for #ce("A2X") and #ce("A2X5").
     The dashed orange line is tangent to the convex hull at composition AX and provides a lower bound on A's chemical potential $μ_A$ where AX would still be stable.
-    Figure reproduced from @bartel_review_2022 and #link("https://github.com/janosh/tikz/pull/36")[available on GitHub] @riebesell_tikz_2022.
+    Figure reproduced from @bartel_review_2022, #link("https://github.com/janosh/diagrams/blob/-/assets/convex-hull-of-stability/convex-hull-of-stability.typ")[available on GitHub] @riebesell_diagrams_2022.
   ],
 )<fig:convex-hull>
 
@@ -578,84 +578,30 @@ The first two sections of the following high-level introduction closely follow @
 DFT has been the workhorse of computational materials science for decades, providing a first-principles quantum mechanical approach to calculating the electronic structure and resulting properties of materials up to system sizes of $~10^4$ atoms with today's supercomputers.
 Its prevalence is due in large part to its prominent placement on the cost-accuracy Pareto front shown in @fig:cost-acc-dft-vs-other-qm, offering an attractive combination of unusually high accuracy at acceptable computational cost.
 
-#let rung(color, content, symbol) = {
-  let stroke = rgb("888") + 0.4pt
-  // rung of Jacob's ladder figure
-  place(dy: 1em, dx: -5.5%)[
-    #line(length: 111%, stroke: 0.7pt)
-  ]
-  rect(inset: 4pt, stroke: stroke, fill: color, radius: 3pt)[#content]
-
-  set par(leading: 0.5em) // reduce line spacing
-  if symbol != [] {
-    place(dy: -5em, dx: -3em)[
-      #circle(radius: 20pt, fill: color, stroke: stroke)[
-        #v(1fr)
-        #align(center)[#math.bold(symbol)]
-        #v(1fr)
-      ]
-    ]
-  }
-}
-
 #figure(
   stack(
     spacing: 2em,
     subfigure(
-      image("figs/intro/qm-cost-vs-acc.svg", width: 65%),
+      include "figs/intro/qm-cost-vs-acc.typ",
       caption: [
-        Cost-accuracy tradeoff of different quantum mechanical methods.
-        Taken from @riebesell_tikz_2022.
+        Cost-accuracy tradeoff of different quantum mechanical approximation methods.
       ],
       label: <fig:cost-acc-dft-vs-other-qm>,
-      dy: 0%,
     ),
     grid(
       columns: (1.1fr, 1fr),
-      column-gutter: 2em,
+      column-gutter: 6em,
       subfigure(
-        rect(radius: 3pt, inset: 9pt)[
-          #box(width: 80%)[
-            #align(center)[
-              #stack[
-                #rung(rgb("ffb7c5"), [*Chemical accuracy*], [])
-                #rung(rgb("ea9999"), [5: *Virtual Double-Hybrids* \ B2PLYP], [${phi_i^"virt"}$])
-                #rung(
-                  rgb("b6d7a8"),
-                  [4: *Occupied Hybrid Methods* \ B3LYP, CAM-B3LYP, M06-2X],
-                  [${phi_i^"occ"}$],
-                )
-                #rung(
-                  rgb("ffe599"),
-                  [3: *Meta-GGA*\ (r/r$""^2$)SCAN],
-                  [$nabla^2rho(r)$ \ $tau(vector(r))$],
-                )
-                #rung(
-                  rgb("f9cb9c"),
-                  [2: *Generalized Gradient\ Approximations (GGA)*\ PBE, BLYP],
-                  [$nabla rho(vector(r))$],
-                )
-                #rung(
-                  rgb("a4c2f4"),
-                  [1: *Local Density\ Approximations (LDA)*\ VWN, GPW92],
-                  [$rho(vector(r))$],
-                )
-                #rung(rgb("b4a7d6"), [0: *Hartree World*], [])
-              ]
-            ]
-          ]],
+        include "figs/intro/dft-jacobs-ladder.typ",
         caption: [
-          Jacob's ladder of DFT approximations @perdew_jacob_2001.
+          Jacob's ladder of $E_"xc"$ approximations @perdew_jacob_2001.
         ],
         label: <fig:dft-jacobs-ladder>,
         dy: 4pt,
       ),
       subfigure(
-        image("figs/intro/kohn-sham-cycle.svg"),
-        caption: [
-          The Kohn-Sham cycle.
-          Taken from @riebesell_tikz_2022.
-        ],
+        include "figs/intro/kohn-sham-cycle.typ",
+        caption: [Kohn-Sham cycle.],
         label: <fig:dft-kohn-sham-cycle>,
         dy: 4pt,
       ),
@@ -668,6 +614,7 @@ Its prevalence is due in large part to its prominent placement on the cost-accur
     *(b)* The Jacob's ladder of DFT according to Perdew represents a hierarchy of approximations to the exchange-correlation energy.
     While displayed as a single dot in (a), even within DFT a wide range of increasingly sophisticated and expensive techniques exist to estimate $E_"xc"$, from cheap local and semi-local functionals to accurate hybrid and double-hybrid functionals.
     *(c)* The Kohn-Sham cycle enables iteratively solving for the ground state electron density, which in turn uniquely determines the total energy of the system.
+    All 3 diagrams available on GitHub #link("https://github.com/janosh/diagrams/blob/-/assets/qm-cost-vs-acc/qm-cost-vs-acc.typ")[(a)], #link("https://github.com/janosh/diagrams/blob/-/assets/dft-jacobs-ladder/dft-jacobs-ladder.typ")[(b)], #link("https://github.com/janosh/diagrams/blob/-/assets/kohn-sham-cycle/kohn-sham-cycle.typ")[(c)] @riebesell_diagrams_2022.
   ],
 )<fig:dft-overview-cost-ladder-scf>
 
@@ -925,6 +872,8 @@ Empirically, end-to-end learned representations generally outperform hand-crafte
       size: size,
       y-tick-step: 2,
       x-tick-step: 2,
+      x-grid: true,
+      y-grid: true,
       legend: "inner-north-west",
       legend-style: (item: (spacing: 0.2), stroke: none, fill: rgb(255, 255, 255, 150)),
       {
@@ -941,14 +890,14 @@ Empirically, end-to-end learned representations generally outperform hand-crafte
             style: (stroke: color + 1.5pt),
             domain: (-4, 4),
             func,
-            label: key + if ref != none {
-              " " + cite(ref)
-            },
+            label: key
+              + if ref != none {
+                " " + cite(ref)
+              },
           )
         }
       },
     )
-    draw.grid((0, 0), size, stroke: 0.1pt, step: (x: size.at(0) / 8, y: size.at(1) / 5))
   }),
   caption: [
     Popular ML activation functions.
@@ -957,6 +906,7 @@ Empirically, end-to-end learned representations generally outperform hand-crafte
     $"Leaky ReLU"(vector(x)) = max(0, vector(x)) + alpha dot min(0, vector(x))$ with $alpha < 0$ adds a small gradient for negative activations.
     $"Sigmoid"(vector(x)) = (1 + exp(-vector(x)))^(-1)$ smoothly squashes the input to the range $(0, 1)$.
     $"Tanh"(vector(x)) = (exp(vector(x))+exp(vector(−x))) / (vector(exp(x))−exp(vector(−x)))$ is a scaled and shifted cousin of the sigmoid function.
+    #link("https://github.com/janosh/diagrams/blob/-/assets/ml-activations/ml-activations.typ")[Diagram available on GitHub] @riebesell_diagrams_2022.
   ],
 )<fig:ml-activation-functions>
 
@@ -1003,14 +953,13 @@ GNNs are not chemistry-specific but have emerged as a powerful approach in vario
 The one commonality in all cases is that nodes naturally map onto entities of the modeled data and edges represent relationships and interactions between them, providing a highly versatile framework for inductive biases.
 
 #figure(
-  image("figs/intro/gnn-node-aggregation.svg", width: 90%),
+  include "figs/intro/gnn-node-aggregation.typ",
   caption: [
     Diagram of the node aggregation process common to all message-passing GNNs.
-    The top shows the information flow from other nodes to the target node $A$ from up to two hops away corresponding to a two-layer GNN.
-    The first layer aggregates information up to one hop away, i.e. from neighboring nodes $B$, $C$ and $D$ by combining the node states into a message function $U$ whose output is used to update node $A$'s state before it enters the next layer.
-    The second layer then aggregates (strongly attenuated) information up to two hops away including nodes $E$ and $F$.
-    The bottom shows aggregation trees for nodes $B$ to $F$, again for up to two hops away to illustrate the quickly growing receptive field of each node with layer count, especially in highly connected graphs.
-    Adapted from @hamilton_graph_2020[p.~55] and @ying_graph_2018[fig.~1].
+    It shows the information flow from other nodes to the target node $A$ from up to two hops away corresponding to a two-layer GNN.
+    The first layer aggregates information from neighboring nodes $B$, $C$ and $D$ by combining the node states into a message function $U$ whose output is used to update node $A$'s state before it enters the next layer.
+    The second layer then aggregates (attenuated) information up to two hops away including nodes $E$ and $F$, illustrating the quickly growing receptive field of each node with layer count, especially in highly connected graphs.
+    #link("https://github.com/janosh/diagrams/blob/-/assets/gnn-node-aggregation/gnn-node-aggregation.typ")[Diagram available on GitHub] @riebesell_diagrams_2022, adapted from @hamilton_graph_2020[p.~55].
   ],
 )<fig:gnn-node-aggregation>
 // Local atomic environment features can then be learned by imposing a radius cutoff and letting the embedding vectors of nodes and edges within each cutoff sphere participate in a message-passing operation that determines the central node's feature vector in the next graph convolution layer @frenkel_understanding_2023.
@@ -1080,10 +1029,8 @@ DimeNet @gasteiger_directional_2022 incorporates angular information by using a 
 
 $
   M_(t)(vector(h)_i^((t)), vector(h)_j^((t)), vector(e)_(i j)^((t)))
-  = vector(h)_j^((t)) dot.circle (
-    sum_(n,ell) a_(n ell)^((t)) dot j_n(r_(i j))
-    dot sum_(m=-ell)^ell Y_ell^(m)(vector(r)_(i j)) dot Y_ell^(m*)(vector(r)_(i k))
-  )
+  = vector(h)_j^((t)) dot.circle ( sum_(n,ell) a_(n ell)^((t)) dot j_n(r_(i j))
+    dot sum_(m=-ell)^ell Y_ell^(m)(vector(r)_(i j)) dot Y_ell^(m*)(vector(r)_(i k)) )
 $<eqn:dimenet-message>
 
 where $a_(n ell)^((t))$ are learnable parameters and $k$ ranges over the neighbors of $i$.
@@ -1185,9 +1132,7 @@ In their most simplistic approximation using Hooke's law, these terms can be wri
 $
   E_"bonded"
   &= E_"bonds" + E_"angles" + E_"torsions"\
-  &= sum_"bonds" k_r (r - r_0)^2 + sum_"angles" k_theta (theta - theta_0)^2 + sum_"torsions" k_phi [
-    1 + cos(n phi - delta)
-  ],
+  &= sum_"bonds" k_r (r - r_0)^2 + sum_"angles" k_theta (theta - theta_0)^2 + sum_"torsions" k_phi [ 1 + cos(n phi - delta) ],
 $
 
 where $r$, $theta$, and $phi$ are bond lengths, angles, and dihedral angles with $r_0$, $theta_0$, and $phi_0$ their equilibrium values, while $k_r$, $k_theta$, $k_phi$, are force constants and $n$ and $delta$ are phase angles.
@@ -1197,9 +1142,7 @@ $E_"non-bonded"$ accounts for electrostatics and van der Waals interactions, the
 $
   E_"non-bonded"
   &= E_"electrostatics" + E_"van der Waals"\
-  &= sum_(i<j) (
-    frac(q_i q_j, 4pi epsilon_0 r_"ij") + 4epsilon_"ij" [(frac(sigma_"ij", r_"ij"))^12 - (frac(sigma_"ij", r_"ij"))^6]
-  ),
+  &= sum_(i<j) ( frac(q_i q_j, 4pi epsilon_0 r_"ij") + 4epsilon_"ij" [(frac(sigma_"ij", r_"ij"))^12 - (frac(sigma_"ij", r_"ij"))^6] ),
 $
 
 where $q_i$ and $q_j$ are the partial charges on atoms $i$ and $j$, $r_"ij"$ is the distance between them, $epsilon_0$ is the vacuum permittivity, $epsilon_"ij"$ and $sigma_"ij"$ are the Lennard-Jones parameters, and $k_r$, $k_theta$, $k_phi$, $n$, and $delta$ are force constants and phase angles for the bonded terms.
@@ -1255,12 +1198,13 @@ While hard to predict where the rapid pace of current improvements might stall, 
 They approach both the speed and favorable scaling of classical force fields and the accuracy of ab initio quantum simulations, thus pushing the cost-accuracy Pareto boundaries in materials modeling as illustrated in @fig:dft-mlff-cff-speed-accuracy-transfer.
 
 #figure(
-  image("figs/intro/dft-mlff-cff-speed-accuracy-transfer.svg", width: 70%),
+  include "figs/intro/dft-mlff-cff-speed-accuracy-transfer.typ",
   caption: [
     Speed-accuracy-transferability trade-off of DFT, foundational MLFFs, and CFFs.
     DFT provides the highest accuracy and versatility but is slow and scales poorly with system size.
     CFFs are very computationally efficient at decent accuracy but are tailored to specific chemical systems and interaction types and so offer poor transferability.
     MLFFs offer near-DFT accuracy at a fraction of the cost and scale linearly with system size, thus bridging the gap between the speed of classical force fields and the accuracy and versatility of DFT.
+    #link("https://github.com/janosh/diagrams/blob/-/assets/dft-mlff-cff-speed-accuracy-transfer/dft-mlff-cff-speed-accuracy-transfer.typ")[Diagram available on GitHub] @riebesell_diagrams_2022.
   ],
 )<fig:dft-mlff-cff-speed-accuracy-transfer>
 
@@ -1755,12 +1699,14 @@ Since these derailed values are easily identified and not harmful in practice wh
 === #wrenformer High-energy Predictions
 <sec:wrenformer-high-energy-predictions>
 
-#figure(caption: [
-  *Symmetry analysis of the 941 #wrenformer high-predicted-energy failure cases.*
-  Included are all points in the shaded rectangle defined by $E_"DFT hull dist" < 1$ and $E_"ML hull dist" > 1$.
-  The spacegroup sunburst (bottom left) plot shows that 85% of severe energy overestimations are orthorhombic with 82% from spacegroup 71.
-  The table on the right shows occurrence counts of exact structure prototypes for each material in the sunburst plot as well as their corresponding prevalence in the training set.
-])[
+#figure(
+  caption: [
+    *Symmetry analysis of the 941 #wrenformer high-predicted-energy failure cases.*
+    Included are all points in the shaded rectangle defined by $E_"DFT hull dist" < 1$ and $E_"ML hull dist" > 1$.
+    The spacegroup sunburst (bottom left) plot shows that 85% of severe energy overestimations are orthorhombic with 82% from spacegroup 71.
+    The table on the right shows occurrence counts of exact structure prototypes for each material in the sunburst plot as well as their corresponding prevalence in the training set.
+  ],
+)[
   #image("figs/mbd/hull-dist-parity-wrenformer-failures.svg", width: 80%),
   #stack(
     dir: ltr,
@@ -3137,12 +3083,8 @@ For a given batch size $N_b$ and number of atoms in each structure $N_a$, the fu
 $
   cal(L)
   = lambda_E / N_b sum_(b=1)^(N_b)cal(L)_("Huber")(hat(E)_b / N_a, E_b / N_a, delta_E)
-  + lambda_F / (3sum_(b=1)^(N_b)N_a) sum_(b=1)^(N_b) sum_(a=1)^(N_a)sum_(i=1)^(3) cal(L)^star_("Huber")(
-    (diff hat(E)_b) / (diff r_(b,a,i)), F_(b,a,i), delta_F
-  ) \
-  + lambda_sigma / (9N_b) sum_(b=1)^(N_b) sum_(i=1)^(3) sum_(j=1)^(3) cal(L)_("Huber")(
-    1 / V_b (diff hat(E)_b) / (diff ϵ_(b,i j)), sigma_(b,i j), delta_sigma
-  ),
+  + lambda_F / (3sum_(b=1)^(N_b)N_a) sum_(b=1)^(N_b) sum_(a=1)^(N_a)sum_(i=1)^(3) cal(L)^star_("Huber")( (diff hat(E)_b) / (diff r_(b,a,i)), F_(b,a,i), delta_F ) \
+  + lambda_sigma / (9N_b) sum_(b=1)^(N_b) sum_(i=1)^(3) sum_(j=1)^(3) cal(L)_("Huber")( 1 / V_b (diff hat(E)_b) / (diff ϵ_(b,i j)), sigma_(b,i j), delta_sigma ),
 $<eqn:mace-mp-loss>
 
 where $lambda_E, lambda_F, lambda_sigma$ can be used to control the relative importance placed on energy, forces, and stress losses.
@@ -3528,29 +3470,31 @@ The largest discrepancies between PBE and ML bandwidths are shown in @tab:worst-
   table(
     columns: max-phonon-freq-errors.first().len(),
     table.header[Model][MP ID][Formula][$bold(omega_"max"^"ML")$ #thz-unit][$bold(omega_"max"^"PBE")$ #thz-unit][$bold(omega_"max"^"err")$ #thz-unit][$bold(omega_"max"^"err rel")$],
-    ..max-phonon-freq-errors.map(row => {
-      let model = row.at("Model")
-      let mp-id = mp-link(row.at("Material ID"))
-      let formula = ce(row.at("Formula"))
-      let ph-max-freq-ml = row.at("Max Ph Freq ML")
-      let ph-max-freq-dft = row.at("Max Ph Freq DFT")
-      let max-err = row.at("Max Ph Freq Max Error")
-      let max-err-rel = row.at("Max Error Rel")
+    ..max-phonon-freq-errors
+      .map(row => {
+        let model = row.at("Model")
+        let mp-id = mp-link(row.at("Material ID"))
+        let formula = ce(row.at("Formula"))
+        let ph-max-freq-ml = row.at("Max Ph Freq ML")
+        let ph-max-freq-dft = row.at("Max Ph Freq DFT")
+        let max-err = row.at("Max Ph Freq Max Error")
+        let max-err-rel = row.at("Max Error Rel")
 
-      // bold lowest error achieved by mace-mp
-      let max-err = if model == mace-mp {
-        [*#si1(max-err)*]
-      } else {
-        si1(max-err)
-      }
-      let max-err-rel = if model == mace-mp {
-        [*#percent(float(max-err-rel))*]
-      } else {
-        percent(float(max-err-rel))
-      }
+        // bold lowest error achieved by mace-mp
+        let max-err = if model == mace-mp {
+          [*#si1(max-err)*]
+        } else {
+          si1(max-err)
+        }
+        let max-err-rel = if model == mace-mp {
+          [*#percent(float(max-err-rel))*]
+        } else {
+          percent(float(max-err-rel))
+        }
 
-      (model, mp-id, formula, si1(ph-max-freq-ml), si1(ph-max-freq-dft), max-err, max-err-rel)
-    }).flatten(),
+        (model, mp-id, formula, si1(ph-max-freq-ml), si1(ph-max-freq-dft), max-err, max-err-rel)
+      })
+      .flatten(),
   ),
   caption: [
     *Worst-case phonon band width predictions for each model out of #phonon-analysis-mp-ids.len() materials* (listed in @tab:phonon-mp-ids).
@@ -3581,9 +3525,12 @@ They indicate significant potential for ML force fields to become accurate unive
       none
     },
     table.header(..([MP ID], [Formula], [Supercell], [Atoms]) * 2),
-    ..phonon-analysis-mp-ids.slice(1, phonon-mat-rows + 1).map(((mp-id, formula, ..rest)) => {
-      (mp-link(mp-id), ce(formula), ..rest)
-    }).flatten(),
+    ..phonon-analysis-mp-ids
+      .slice(1, phonon-mat-rows + 1)
+      .map(((mp-id, formula, ..rest)) => {
+        (mp-link(mp-id), ce(formula), ..rest)
+      })
+      .flatten(),
   ),
   caption: [
     *Materials analyzed in the phonon band structure comparison.*
@@ -3771,16 +3718,20 @@ Nonetheless, for 9 of the original 100 MP compositions considered here, new stru
 We believe these to be genuinely new phases that are thermodynamically stable with respect to the MP convex hull.
 For each novel ground state discovered, the closest MP structure is:
 #for (idx, pair) in (
-  mp-1106139: "Bi3Pb",
-  mp-559695: "Cs3BiF6",
-  mp-561827: "Cs3TlF6",
-  mp-1211553: "LuCrO5",
-  mp-545399: "NaNiIO6",
-  mp-1522253: "NaSrSnBiO6",
-  mp-1220399: "NdGaAu2",
-  mp-1100068: "Sr2CoO4",
-  mp-775149: "TiS2O8",
-).pairs().enumerate() {
+  (
+    mp-1106139: "Bi3Pb",
+    mp-559695: "Cs3BiF6",
+    mp-561827: "Cs3TlF6",
+    mp-1211553: "LuCrO5",
+    mp-545399: "NaNiIO6",
+    mp-1522253: "NaSrSnBiO6",
+    mp-1220399: "NdGaAu2",
+    mp-1100068: "Sr2CoO4",
+    mp-775149: "TiS2O8",
+  )
+    .pairs()
+    .enumerate()
+) {
   if idx > 0 {
     ", "
   }
@@ -4661,11 +4612,7 @@ Perhaps unsurprising given continuous improvements in model accuracy with increa
 // list figures not referenced in the text (shows nothing if there are none)
 // https://github.com/typst/typst/issues/3546
 #context {
-  let fig-labels = query(figure)
-    .filter(
-      fig => fig.has("label") and fig.kind != "subfigure"
-    )
-    .map(fig => fig.label)
+  let fig-labels = query(figure).filter(fig => fig.has("label") and fig.kind != "subfigure").map(fig => fig.label)
   let all-refs = query(ref).map(ref => ref.target)
   let unreferenced = fig-labels.filter(label => label not in all-refs)
   if (unreferenced.len() > 0) {
