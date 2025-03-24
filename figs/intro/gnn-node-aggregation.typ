@@ -1,4 +1,4 @@
-#import "@preview/cetz:0.3.2": canvas, draw
+#import "@preview/cetz:0.3.4": canvas, draw
 
 #canvas({
   import draw: line, content, circle, rect

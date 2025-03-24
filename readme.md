@@ -5,5 +5,8 @@
 
 Thesis titled "**Towards Machine Learning Foundation Models for Materials Chemistry**" Science submitted to the University of Cambridge Department of Physics in April 2024.
 
-- [View PDF](thesis.pdf)
-- [View source code](thesis.typ)
+> [![Thesis cover](https://github.com/user-attachments/assets/149cdf24-4493-4621-985e-2084a0099ad4)](thesis.pdf)
+
+## Source code
+
+[`thesis.typ`](thesis.typ) and [`template.typ`](template.typ).

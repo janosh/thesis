@@ -1,6 +1,6 @@
 #let subfigure-kind = "subfigure"
 
-#let subfigure-counter = counter(figure.where(kind: subfigure-kind))
+#let subfigure-counter = counter(subfigure-kind)
 
 #let subfigure(
   body,
@@ -8,7 +8,7 @@
   dx: 0%,
   dy: 6%,
   caption: "",
-  numbering: "(a)",
+  numbering: "a)",
   separator: none,
   label: none,
   supplement: none,
@@ -33,7 +33,7 @@
   context {
     let sub-fig-num = subfigure-counter.display(numbering)
     let caption-content = [#supplement #sub-fig-num#separator #caption]
-    return [#fig #label #place(pos, dx: dx, dy: dy, caption-content)]
+    return [ #fig#label #place(pos, dx: dx, dy: dy, caption-content) ]
   }
 }
 
@@ -95,9 +95,8 @@
   show table.cell.where(y: 0): set text(weight: "bold")
 
   // paragraphs
-  set par(leading: 1em)
-  set par(justify: true, first-line-indent: 1em)
-  show terms: set par(first-line-indent: 0pt)
+  set par(leading: 1em, justify: true, first-line-indent: 1em)
+  show terms: set par(first-line-indent: 0pt) // Reset indent for definition lists
 
   // figures
   show figure: set text(size: 0.95em)
@@ -116,14 +115,11 @@
   // move table captions above figure (default is below)
   // show figure.where(kind: table): set figure.caption(position: top)
 
-  // make top-level ToC entries bold
+  // make top-level ToC entries bold and adjust spacing
   show outline.entry.where(level: 1): it => {
-    set par(first-line-indent: 0pt)
-    v(8pt)
+    v(1em)
     strong(it)
-    v(-12pt)
   }
-
 
   // reset subfigure counter when out of the parent figure
   show figure: itm => {
@@ -132,17 +128,29 @@
     }
     itm
   }
+
+  // Custom rule for formatting references to subfigures as "Figure 1a)"
   show ref: itm => {
     let elem = itm.element
-    // TODO if inside the subfigure's caption, directly reference the subfigure label without prefixing the figure counter
+    // Check if referenced element is a subfigure
     if elem != none and elem.func() == figure and elem.kind == subfigure-kind {
-      context {
-        let qry = query(figure.where(outlined: true).before(itm.target)).last()
-        if qry.has("label") {
-          return ref(qry.label)
-        }
-      }
+      // Find all outlined figures before the subfigure's location
+      let outlined-figs-before = query(figure.where(outlined: true).before(elem.location()))
+      // Filter out figures that are tables (kind: table)
+      let actual-figs-before = outlined-figs-before.filter(f => f.kind != table)
+      // The parent figure is the last one in the filtered list
+      let parent-fig = actual-figs-before.last()
+      // Calculate the parent figure number based on its position in the filtered list
+      let parent-num = actual-figs-before.len()
+      // Get the subfigure counter state array at the element's location
+      let subfig-state = subfigure-counter.at(elem.location())
+      // Format the state using the numbering function
+      let subfig-num = numbering(elem.numbering, ..subfig-state)
+      // Note: This assumes standard '1, 2, 3...' numbering for parent figures.
+      // Custom parent numbering formats (e.g., "A.1") won't be replicated here.
+      return [#parent-fig.supplement #parent-num#subfig-num]
     }
+    // Default handling for all other references
     itm
   }
 
@@ -165,7 +173,7 @@
 ) = {
   set document(title: title, author: author, keywords: keywords)
   set page(margin: (x: 30mm, y: 40mm), numbering: none)
-  set text(font: "New Computer Modern Sans")
+  set text(font: "libertinus serif")
   set align(center)
 
   text(size: 2.2em, weight: 700, title)
@@ -257,11 +265,9 @@
     .clusters()
     .enumerate()
     .map(item => {
-        let (idx, value) = item
-        return value + if calc.rem(idx, 3) == 0 and idx != 0 {
-          thousands
-        }
-      })
+      let (idx, value) = item
+      return (value + if calc.rem(idx, 3) == 0 and idx != 0 { thousands })
+    })
     .rev()
     .join("")
   // if the number has a decimal part, store it
@@ -269,9 +275,7 @@
     parts.at(1)
   }
   // return the formatted number
-  return integer-part + if decimal-part != none {
-    decimal + decimal-part
-  }
+  return (integer-part + if decimal-part != none { decimal + decimal-part })
 }
 
 // shared this function with the community
@@ -328,7 +332,6 @@
   } else {
     panic("Invalid num-mode: ", num-mode)
   }
-
   formatted + sep + scale.split().at(-1, default: "") + unit
 }
 
@@ -336,8 +339,5 @@
 #let si1 = si-format.with(precision: 1)
 #let si4 = si-format.with(precision: 4)
 #let percent(val, supplement: "%", precision: 1) = (
-  si-format(
-    val * 100,
-    precision: precision,
-  ) + supplement
+  si-format(val * 100, precision: precision) + supplement
 )

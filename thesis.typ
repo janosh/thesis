@@ -13,11 +13,11 @@
   num-fmt,
 )
 #import "@preview/xarrow:0.3.1": xarrow
-#import "@preview/cetz:0.3.2": canvas
+#import "@preview/cetz:0.3.4": canvas
 #import "@preview/cetz-plot:0.1.1": plot
 // https://github.com/schang412/typst-whalogen
 // ce(str) used to render chemical formulas
-#import "@preview/whalogen:0.2.0": ce
+#import "@preview/whalogen:0.3.0": ce
 
 
 // thesis metadata
@@ -107,8 +107,6 @@
   department: department,
   logo: "figs/cambridge-crest.svg",
 )
-
-// TODO define the term "foundation model for materials chemistry"
 
 = Declaration of Authorship
 <sec:declaration>
@@ -316,7 +314,7 @@ However, in unexplored chemical spaces, even high-energy structures may initiall
 Only thorough exploration can increase confidence that the known hull approximates the true hull and that phases predicted to be on the hull are truly stable.
 
 #figure(
-  include "figs/intro/convex-hull-of-stability.typ",
+  scale(90%, reflow: true, include "figs/intro/convex-hull-of-stability.typ"),
   caption: [
     The convex hull of stability for a hypothetical A--X chemical system.
     The hull is spanned by the lowest energy surface in composition space.
@@ -472,9 +470,13 @@ The rapid progress of ML for materials in recent years has led to property predi
     [- molecular electronic properties @faber_prediction_2017],
     [- direct property prediction @dunn_benchmarking_2020 @choudhary_large_2023],
 
-    [- IS2RE#footnote[IS2RE = Initial Structure to Relaxed Energy.
-    Terminology introduced by @chanussot_open_2021] stability @riebesell_matbench_2023 @chanussot_open_2021 @merchant_scaling_2023 @jang_structurebased_2020 @mok_directionbased_2022],
-    [- driving diverse simulations @riebesell_foundation_2023 @takamoto_teanet_2022 @takamoto_towards_2022 @deng_chgnet_2023 @chen_universal_2022],
+    [
+      - IS2RE#footnote[IS2RE = Initial Structure to Relaxed Energy.
+    Terminology introduced by @chanussot_open_2021] stability @riebesell_matbench_2023 @chanussot_open_2021 @merchant_scaling_2023 @jang_structurebased_2020 @mok_directionbased_2022
+    ],
+    [
+      - driving diverse simulations @riebesell_foundation_2023 @takamoto_teanet_2022 @takamoto_towards_2022 @deng_chgnet_2023 @chen_universal_2022
+    ],
   )]
 Materials simulations historically driven by physics-based models (either semi-empirical or fully ab-initio) are increasingly making use of purely data-driven (physics-agnostic) models.
 Hybrid workflows that combine the two (where ML often serves as a low-cost, lower-fidelity filter) are also quickly gaining traction @ganose_atomate2_2024 @kavanagh_doped_2024.
@@ -553,7 +555,7 @@ While encouraging progress has been made in training single large models on mult
     We contribute to this by open-sourcing #chgnet @deng_chgnet_2023 and #mace-mp @riebesell_foundation_2023, two models co-developed in @sec:mbd and thoroughly tested in @sec:mace-mp.
     Both models established a new state of the art (SOTA) at time of publication among 10 tested open-source, open-data models#footnote[The proprietary #gnome of #nequip architecture and trained on a much bigger proprietary dataset was the only model known to perform better on #mbd.].
   + *Commoditizing* foundation models so they become usable by non-experts.
-    By academic standards, #link("https://github.com/CederGroupHub/chgnet")[#chgnet] and #link("https://github.com/ACEsuit/mace-mp")[#mace-mp] have well-maintained code bases and versatile easy-to-use and install APIs, public weights, public training data and public training scripts to reproduce our results and finetune the models on new data.
+    By academic standards, #link("https://github.com/CederGroupHub/chgnet")[#chgnet] and #link("https://github.com/ACEsuit/mace-foundations")[#mace-mp] have well-maintained code bases and versatile easy-to-use and install APIs, public weights, public training data and public training scripts to reproduce our results and finetune the models on new data.
 ]
 
 While scaling efforts from industry are likely to drive rapid progress that academia will likely struggle to keep up with (as recently demonstrated by large language models @vaswani_attention_2017 @openai_gpt4_2024 @anil_gemini_2023 @anthropic_introducing_2024), the academic and open source communities must step up to champion reproducibility and FAIRness in model development and training data generation.
@@ -571,7 +573,7 @@ These two widely used methods in computational materials science underpin all wo
 == Density Functional Theory
 <sec:methods-dft>
 
-Kohn-Sham DFT as depicted in @fig:dft-kohn-sham-cycle at the PBE level of theory is the exclusive source of reference data for all models and benchmarks presented in this thesis (@sec:mbd, @sec:mace-mp).
+The Kohn-Sham DFT self consistency cycle depicted in @fig:dft-kohn-sham-cycle at the PBE level of theory is the exclusive source of reference data for all models and benchmarks presented in this thesis (@sec:mbd, @sec:mace-mp).
 It also serves as the highest-fidelity computational filter in a high-throughput funnel-type discovery workflow (@sec:diel).
 The first two sections of the following high-level introduction closely follow @smidt_systematic_2018.
 
@@ -589,10 +591,10 @@ Its prevalence is due in large part to its prominent placement on the cost-accur
       label: <fig:cost-acc-dft-vs-other-qm>,
     ),
     grid(
-      columns: (1.1fr, 1fr),
-      column-gutter: 6em,
+      columns: (1fr, 1fr),
+      column-gutter: 1em,
       subfigure(
-        include "figs/intro/dft-jacobs-ladder.typ",
+        scale(80%, reflow: true, include "figs/intro/dft-jacobs-ladder.typ"),
         caption: [
           Jacob's ladder of $E_"xc"$ approximations @perdew_jacob_2001.
         ],
@@ -600,7 +602,7 @@ Its prevalence is due in large part to its prominent placement on the cost-accur
         dy: 4pt,
       ),
       subfigure(
-        include "figs/intro/kohn-sham-cycle.typ",
+        scale(80%, reflow: true, include "figs/intro/kohn-sham-cycle.typ"),
         caption: [Kohn-Sham cycle.],
         label: <fig:dft-kohn-sham-cycle>,
         dy: 4pt,
@@ -611,19 +613,19 @@ Its prevalence is due in large part to its prominent placement on the cost-accur
   caption: [
     *(a)* The cost-accuracy tradeoff of different quantum mechanical methods.
     DFT is the most widely used method in materials science due to its exceptional accuracy given its favorable cubic cost scaling.
-    *(b)* The Jacob's ladder of DFT according to Perdew represents a hierarchy of approximations to the exchange-correlation energy.
-    While displayed as a single dot in (a), even within DFT a wide range of increasingly sophisticated and expensive techniques exist to estimate $E_"xc"$, from cheap local and semi-local functionals to accurate hybrid and double-hybrid functionals.
+    *(b)* Jacob's ladder of DFT according to Perdew represents a hierarchy of increasingly sophisticated, accurate and expensive approximations to the exchange-correlation energy.
+    While displayed as a single dot in (a), the ladder shows that even within DFT a wide range of techniques with different cost-accuracy tradeoffs exist to estimate $E_"xc"$, from cheap local and semi-local functionals to accurate hybrid and double-hybrid/range-separated functionals.
     *(c)* The Kohn-Sham cycle enables iteratively solving for the ground state electron density, which in turn uniquely determines the total energy of the system.
     All 3 diagrams available on GitHub #link("https://github.com/janosh/diagrams/blob/-/assets/qm-cost-vs-acc/qm-cost-vs-acc.typ")[(a)], #link("https://github.com/janosh/diagrams/blob/-/assets/dft-jacobs-ladder/dft-jacobs-ladder.typ")[(b)], #link("https://github.com/janosh/diagrams/blob/-/assets/kohn-sham-cycle/kohn-sham-cycle.typ")[(c)] @riebesell_diagrams_2022.
   ],
-)<fig:dft-overview-cost-ladder-scf>
+)
 
 The central quantity in DFT is the electron density $n(vector(r))$, a function of just three spatial coordinates $vector(r) = (x,y,z)$.
 It replaces the much more complex full electronic many-body quantum wave function $Psi(vector(R), vector(r))$ of $3N + 3M$ spatial coordinates for a system of $N$ electrons and $M$ nuclei.
 Despite being a much simpler object, $n(vector(r))$ nonetheless uniquely determines the system's ground state.
 This crucial insight is due to Hohenberg and Kohn, who showed that the ground-state energy $E[n(vector(r))]$ of a system is a unique functional of the electron density.
 Moreover, the ground-state electron density is the minimizer of this functional, thus offering variational access to the ground state of any quantum system.
-An iteratively-derived self-consistent solution @kresse_efficient_1996 of the Kohn-Sham equations @kohn_selfconsistent_1965 as shown in @fig:dft-kohn-sham-cycle, therefore, yields both the ground-state electron density and the total energy of the system from which many downstream properties can be derived.
+An iteratively-derived self-consistent solution @kresse_efficient_1996 of the Kohn-Sham equations @kohn_selfconsistent_1965 as shown in @fig:dft-kohn-sham-cycle therefore yields both the ground-state electron density and the total energy of the system from which many downstream properties can be derived.
 
 The time-independent many-body Schrödinger equation describes the quantum behavior of a system of $N$ electrons and $M$ nuclei @martin_electronic_2020:
 $
@@ -953,7 +955,7 @@ GNNs are not chemistry-specific but have emerged as a powerful approach in vario
 The one commonality in all cases is that nodes naturally map onto entities of the modeled data and edges represent relationships and interactions between them, providing a highly versatile framework for inductive biases.
 
 #figure(
-  include "figs/intro/gnn-node-aggregation.typ",
+  scale(90%, reflow: true, include "figs/intro/gnn-node-aggregation.typ"),
   caption: [
     Diagram of the node aggregation process common to all message-passing GNNs.
     It shows the information flow from other nodes to the target node $A$ from up to two hops away corresponding to a two-layer GNN.
@@ -1108,7 +1110,7 @@ However, it still relies on semiempirical corrections for long-ranged electrosta
 More recently, #chgnet @deng_chgnet_2023 has incorporated magnetic moments as a proxy for oxidation states to more accurately describe heterovalent ions whose interactions can depend strongly on their valence state.
 Closer adherence to the full physics provides additional latent-space regularization to the model and often allows #chgnet to infer the absolute value of magnetic moments from ionic structure, enabling the study of charge distribution and its effects on ionic dynamics in large-scale simulations.
 Similarly named but more explicit in its treatment of electronic structure is ChargE3Net @koker_higherorder_2023, an E(3)-equivariant GNN that directly predicts electron density at arbitrary points in atomic systems.
-The authors show starting the DFT self-consistent field (SCF) cycle from ChargE3Net-predicted electron densities requires fewer iterations to converge than VASP's default initialization which uses a superposition of atomic densities (SAD) @lehtola_assessment_2019.
+The authors show starting the Kohn-Sham self-consistent field (SCF) cycle from ChargE3Net-predicted electron densities requires fewer iterations to converge than VASP's default initialization which uses a superposition of atomic densities (SAD) @lehtola_assessment_2019.
 Incorporating electronic degrees of freedom into MLIPs at higher fidelity is an active area of research with many innovations likely to come.
 If done efficiently and with appropriate inductive biases, it has the potential to enable fully data-driven electronic structure simulations.
 
@@ -1198,7 +1200,7 @@ While hard to predict where the rapid pace of current improvements might stall, 
 They approach both the speed and favorable scaling of classical force fields and the accuracy of ab initio quantum simulations, thus pushing the cost-accuracy Pareto boundaries in materials modeling as illustrated in @fig:dft-mlff-cff-speed-accuracy-transfer.
 
 #figure(
-  include "figs/intro/dft-mlff-cff-speed-accuracy-transfer.typ",
+  scale(86%, reflow: true, include "figs/intro/dft-mlff-cff-speed-accuracy-transfer.typ"),
   caption: [
     Speed-accuracy-transferability trade-off of DFT, foundational MLFFs, and CFFs.
     DFT provides the highest accuracy and versatility but is slow and scales poorly with system size.
@@ -1917,15 +1919,13 @@ That is, #mace-mp tends to underestimate the convex hull distance and therefore 
       image("figs/mbd/ptable-each-error-hists-mace.svg"),
       caption: [MACE element-wise convex hull distance error distributions],
       label: <fig:ptable-each-error-hists-mace>,
-      pos: top + center,
-      dy: 2%,
+      dy: -24em,
     ),
     subfigure(
       image("figs/mbd/ptable-each-error-hists-chgnet.svg"),
       caption: [#chgnet element-wise convex hull distance error distributions],
       label: <fig:ptable-each-error-hists-chgnet>,
-      pos: top + center,
-      dy: 2%,
+      dy: -24em,
     ),
   ),
   caption: [
@@ -2236,7 +2236,8 @@ Even so, making #CTTO and #BZO required several trial-and-error iterations to op
     row-gutter: 3em,
     subfigure(
       image("figs/diel/exp-rietveld-CsTaTeO6-Fd3m.svg"),
-      caption: [Pyrochlore Fd3m Rietveld fit for #CTTO],
+      dy: 14pt,
+      caption: [Pyrochlore Fd3m Rietveld\ fit for #CTTO],
       label: <fig:exp-rietveld-CsTaTeO6-Fd3m>,
     ),
     subfigure(
@@ -2262,7 +2263,8 @@ Even so, making #CTTO and #BZO required several trial-and-error iterations to op
 
     subfigure(
       image("figs/diel/exp-rietveld-Bi2Zr2O7-Fm3m.svg"),
-      caption: [Fluorite Fm3m Rietveld fit for #BZO],
+      dy: 14pt,
+      caption: [Fluorite Fm3m Rietveld\ fit for #BZO],
       label: <fig:exp-rietveld-Bi2Zr2O7-Fm3m>,
     ),
     subfigure(
@@ -2272,7 +2274,7 @@ Even so, making #CTTO and #BZO required several trial-and-error iterations to op
     ),
     subfigure(
       image("figs/diel/crystals/exp/Bi2Zr2O7-polyhedra.png", width: 70%),
-      caption: [Isolated #ce("Zr/BiO8") polyhedra],
+      caption: [Isolated #ce("Zr/BiO8")\ polyhedra],
       placement: top,
       label: <fig:Bi2Zr2O7-polyhedra>,
     ),
@@ -3109,30 +3111,30 @@ $<eqn:loss-huber-force>
   grid(
     columns: (1fr, 1fr),
     column-gutter: 15pt,
-    row-gutter: -5pt,
+    row-gutter: -9pt,
     subfigure(
       image("figs/mace-mp/mace-mp-train-curve-val-loss.svg", width: 100%),
       pos: bottom + left,
-      dy: -19pt,
+      dy: -3em,
       label: <fig:mace-mp-val-loss>,
     ),
     subfigure(
       image("figs/mace-mp/mace-mp-train-curve-energy-val-mae.svg", width: 100%),
       pos: bottom + left,
-      dy: -19pt,
+      dy: -3em,
       label: <fig:mace-mp-val-energy-mae>,
     ),
 
     subfigure(
       image("figs/mace-mp/mace-mp-train-curve-force-val-mae.svg", width: 100%),
       pos: bottom + left,
-      dy: -19pt,
+      dy: -3em,
       label: <fig:mace-mp-val-force-mae>,
     ),
     subfigure(
       image("figs/mace-mp/mace-mp-train-curve-stress-val-mae.svg", width: 100%),
       pos: bottom + left,
-      dy: -19pt,
+      dy: -3em,
       label: <fig:mace-mp-val-stress-mae>,
     ),
   ),
@@ -3243,35 +3245,27 @@ While DFPT and the frozen phonon method using the same flavor of DFT should in p
 #figure(
   grid(
     columns: (1fr, 1fr),
-    column-gutter: 1em,
+    gutter: 1em,
     subfigure(
       image("figs/phonons/mp-2758-bs-dos-pbe-vs-mace-y7uhwpje.svg"),
-      pos: top + left,
-      dx: -5pt,
-      dy: 8pt,
       label: <fig:bs-dos-pbe-vs-mace-mp-2758>,
+      caption: [mp-2758],
     ),
     subfigure(
       image("figs/phonons/mp-2998-bs-dos-pbe-vs-mace-y7uhwpje.svg"),
-      pos: top + left,
-      dx: -5pt,
-      dy: 8pt,
       label: <fig:bs-dos-pbe-vs-mace-mp-2998>,
+      caption: [mp-2998],
     ),
 
     subfigure(
       image("figs/phonons/mp-985782-bs-dos-pbe-vs-mace-y7uhwpje.svg"),
-      pos: top + left,
-      dx: -5pt,
-      dy: 8pt,
       label: <fig:bs-dos-pbe-vs-mace-mp-985782>,
+      caption: [mp-985782],
     ),
     subfigure(
       image("figs/phonons/mp-23202-bs-dos-pbe-vs-mace-y7uhwpje.svg"),
-      pos: top + left,
-      dx: -5pt,
-      dy: 8pt,
       label: <fig:bs-dos-pbe-vs-mace-mp-27214>,
+      caption: [mp-27214],
     ),
   ),
   caption: [
@@ -3293,35 +3287,27 @@ While DFPT and the frozen phonon method using the same flavor of DFT should in p
 #figure(
   grid(
     columns: (1fr, 1fr),
-    column-gutter: 1em,
+    gutter: 1em,
     subfigure(
       image("figs/phonons/mp-2758-bs-dos-pbe-vs-chgnet-v0.3.0.svg"),
-      pos: top + left,
-      dx: -5pt,
-      dy: 8pt,
       label: <fig:bs-dos-pbe-vs-chgnet-mp-2758>,
+      caption: [mp-2758],
     ),
     subfigure(
       image("figs/phonons/mp-2998-bs-dos-pbe-vs-chgnet-v0.3.0.svg"),
-      pos: top + left,
-      dx: -5pt,
-      dy: 8pt,
       label: <fig:bs-dos-pbe-vs-chgnet-mp-2998>,
+      caption: [mp-2998],
     ),
 
     subfigure(
       image("figs/phonons/mp-985782-bs-dos-pbe-vs-chgnet-v0.3.0.svg"),
-      pos: top + left,
-      dx: -5pt,
-      dy: 8pt,
       label: <fig:bs-dos-pbe-vs-chgnet-mp-985782>,
+      caption: [mp-985782],
     ),
     subfigure(
       image("figs/phonons/mp-23202-bs-dos-pbe-vs-chgnet-v0.3.0.svg"),
-      pos: top + left,
-      dx: -5pt,
-      dy: 8pt,
       label: <fig:bs-dos-pbe-vs-chgnet-mp-27214>,
+      caption: [mp-27214],
     ),
   ),
   caption: [
@@ -3340,23 +3326,20 @@ While the band structures give a visual and intuitive understanding of the quali
 #figure(
   grid(
     columns: (1fr,) * 3,
-    column-gutter: 1em,
+    gutter: 1em,
     subfigure(
       image("figs/phonons/imaginary-freq-mace-y7uhwpje-confusion-matrix.svg"),
-      pos: top + left,
-      dy: 8pt,
+      caption: [#mace-mp],
       label: <fig:mace-imag-freq-conf-mat>,
     ),
     subfigure(
       image("figs/phonons/imaginary-freq-chgnet-v0.3.0-confusion-matrix.svg"),
-      pos: top + left,
-      dy: 8pt,
+      caption: [#chgnet],
       label: <fig:chgnet-imag-freq-conf-mat>,
     ),
     subfigure(
       image("figs/phonons/imaginary-freq-m3gnet-confusion-matrix.svg"),
-      pos: top + left,
-      dy: 8pt,
+      caption: [#m3gnet],
       label: <fig:m3gnet-imag-freq-conf-mat>,
     ),
   ),
@@ -3369,18 +3352,22 @@ While the band structures give a visual and intuitive understanding of the quali
 )<fig:imaginary-freq-conf-mats>
 
 // #figure(
-//   grid(columns: (1fr,)*3, column-gutter: 1em,
+//   grid(
+//     columns: (1fr,) * 3, gutter: 1em,
 //     subfigure(
 //       image("figs/phonons/imaginary-gamma-freq-mace-y7uhwpje-confusion-matrix.svg"),
-//       pos: top + left, dy: 8pt, label: <fig:mace-imag-gamma-freq-conf-mat>
+//       caption: [#mace-mp],
+//       label: <fig:mace-imag-gamma-freq-conf-mat>,
 //     ),
 //     subfigure(
 //       image("figs/phonons/imaginary-gamma-freq-chgnet-v0.3.0-confusion-matrix.svg"),
-//       pos: top + left, dy: 8pt, label: <fig:chgnet-imag-gamma-freq-conf-mat>
+//       caption: [#chgnet],
+//       label: <fig:chgnet-imag-gamma-freq-conf-mat>,
 //     ),
 //     subfigure(
 //       image("figs/phonons/imaginary-gamma-freq-m3gnet-confusion-matrix.svg"),
-//       pos: top + left, dy: 8pt, label: <fig:m3gnet-imag-gamma-freq-conf-mat>
+//       caption: [#m3gnet],
+//       label: <fig:m3gnet-imag-gamma-freq-conf-mat>,
 //     ),
 //   ),
 //   caption: [
@@ -3388,7 +3375,7 @@ While the band structures give a visual and intuitive understanding of the quali
 //     Same as @fig:imaginary-freq-conf-mats except considers only imaginary frequencies at the $Gamma$ point corresponding to stationary lattice vibrations.
 //     Both #m3gnet and even more so #chgnet are prone to predict imaginary $Gamma$ modes where PBE has none, resulting in an accuracy drop of 3 percentage points for #m3gnet (70% → 67%) and from 12 for #chgnet (65% → 57%).
 //     Understanding which parts of the model architecture and/or training process are attributable to this discrepancy requires further investigation.
-//   ]
+//   ],
 // )<fig:imaginary-gamma-freq-conf-mats>
 
 @fig:imaginary-freq-conf-mats shows confusion matrices for the presence of imaginary frequencies at any $q$-point as predicted by #mace-mp, #chgnet and #m3gnet compared with PhononDB PBE reference data.
@@ -3547,24 +3534,19 @@ The green-shaded area indicating ±#si1[1.5THz] $Delta Omega_"max"$ contains the
 In contrast, $Delta Omega_"min"$ is almost uniformly distributed, showing no clear systematic bias for any model.
 @sec:mlff-pes-softening explains this difference in (mis-)calibration between $Omega_"min"$ and $Omega_"max"$.
 
-
 #figure(
   grid(
     columns: (1fr, 1fr),
     column-gutter: 1em,
     subfigure(
       image("figs/phonons/violin-ph-max-freq-sub.svg"),
-      pos: top + left,
-      dx: -5pt,
-      dy: 8pt,
       label: <fig:violin-ph-max-freq-sub>,
+      caption: [$Omega_"max"$ error distributions],
     ),
     subfigure(
       image("figs/phonons/violin-ph-min-freq-sub.svg"),
-      pos: top + left,
-      dx: -5pt,
-      dy: 8pt,
       label: <fig:violin-ph-min-freq-sub>,
+      caption: [$Omega_"min"$ error distributions],
     ),
   ),
   caption: [
@@ -3845,17 +3827,15 @@ It shows the tilted distribution of ML-predicted vs DFT forces for the specific 
     column-gutter: 1em,
     subfigure(
       image("figs/soft-pes/slanted-off-equi-force-parity.png", width: 100%),
-      pos: top + left,
-      dx: -5pt,
       dy: 0pt,
+      caption: [MLFF vs DFT forces for #ce("Li2B3PO8")],
       label: <fig:slanted-off-equi-force-parity>,
     ),
     subfigure(
       image("figs/soft-pes/softening-scale-violins.svg", width: 100%),
-      pos: top + left,
-      dx: -5pt,
       dy: 0pt,
       label: <fig:softening-scale-violins>,
+      caption: [PES softening scales distributions],
     ),
   ),
   caption: [
@@ -3877,20 +3857,18 @@ Fine-tuning the model with 10 DFT labels further decreases the force MAE to #si4
     column-gutter: 12pt,
     subfigure(
       image("figs/soft-pes/force-parity-chgnet-fine-tuned.svg", width: 100%),
-      pos: top + left,
-      dx: -5pt,
-      dy: 0pt,
+      caption: [Linearly corrected/fine-tuned\ MLFF vs DFT forces for #ce("Li2B3PO8")],
+      dy: 16pt,
       label: <fig:force-parity-chgnet-fine-tuned>,
     ),
     subfigure(
       image("figs/soft-pes/force-error-violins-linear-correction.svg", width: 100%),
-      pos: top + left,
-      dx: -5pt,
-      dy: 0pt,
+      caption: [Force MAE and linear corrected MAEs for #num-fmt(1000) WBM compounds],
+      dy: 16pt,
       label: <fig:soft-pes-force-error-violins-linear-correction>,
     ),
   ),
-  gap: -1pt,
+  gap: 3em,
   caption: [
     *Empirically observed PES softening scales $c_S$ for different models and chemical systems.*
     *(a)* DFT forces vs #chgnet predictions for the same #mp-link[mp-1020015] high-energy states as in @fig:slanted-off-equi-force-parity but _after_ fine-tuning.
@@ -3928,19 +3906,17 @@ As a result, 58% of #mace-mp predictions are within $±5%$ relative error compar
     column-gutter: 1em,
     subfigure(
       image("figs/soft-pes/CsF-phonons-dft-vs-ml.svg"),
-      pos: top + left,
-      dx: -5pt,
-      dy: 8pt,
+      caption: [Phonon dispersion relation and DOS of #ce("CsF")],
+      dy: 16pt,
       label: <fig:CsF-phonons-dft-vs-ml>,
     ),
     subfigure(
       image("figs/phonons/violin-ph-max-freq-div.svg"),
-      pos: top + left,
-      dx: -5pt,
-      dy: 8pt,
+      caption: [Relative error for $Omega_"max"$],
       label: <fig:violin-ph-max-freq-div>,
     ),
   ),
+  gap: 3em,
   caption: [
     *A soft PES causes soft phonons.*
     *(a)* The phonon dispersion relation and DOS of #ce("CsF") (#mp-link[mp-1784]) calculated with DFT and MLFFs.
@@ -4059,7 +4035,7 @@ In that case, future versions of #mace-mp or other foundational force fields may
 The projects in this thesis collectively explored the current boundaries of ML-accelerated materials discovery and simulation.
 ML capabilities have advanced at an impressive pace in the last few years with significant improvements across model architecture, training data, usability and reproducibility.
 Many models now come as versioned, easily installable Python packages#footnote[
-  E.g. `pip install`
+  `pip install`
   #link("https://pypi.org/project/chgnet")[`chgnet`]
   #link("https://pypi.org/project/mace-mp")[`mace-torch`]
   #link("https://pypi.org/project/m3gnet")[`m3gnet`]
@@ -4337,7 +4313,7 @@ We used Materials Project data from the (#link("https://docs.materialsproject.or
 
 The code to train #mace-mp on #link("https://figshare.com/articles/dataset/23713842")[#mptrj] is available on GitHub at #link(mbd-repo-url + "/blob/71a5edc/models/mace/train_mace.py").
 The MACE source code was published to PyPI as the #link("https://pypi.org/project/mace-torch")[`mace-torch`] package 9 days after publishing the model in @riebesell_foundation_2023 and can be installed with `pip install mace-torch`.
-The model weights for the small, medium and large versions of #mace-mp are available at #link("https://github.com/ACEsuit/mace-mp").
+The model weights for the small, medium and large versions of #mace-mp are available at #link("https://github.com/ACEsuit/mace-foundations").
 Future versions of the model will also appear here as newer releases.
 They can be manually downloaded and will be auto-downloaded by the `mace-torch` package when requesting a given model for the first time.
 All code and data used in the phonon analysis (@sec:mlff-phonon-analysis) can be found at #link("https://github.com/janosh/ffonons").
@@ -4363,22 +4339,19 @@ To offer some high-level insights into the makeup of these datasets, this sectio
     spacing: -1em,
     subfigure(
       image(width: 90%, "figs/mbd/mp-element-counts-by-occurrence-symlog.svg"),
-      pos: top + center,
-      dy: 2%,
+      dy: -20.5em,
       label: <fig:mp-element-counts-by-occurrence>,
       caption: [MP training set element occurrence],
     ),
     subfigure(
       image(width: 90%, "figs/mbd/wbm-element-counts-by-occurrence-symlog.svg"),
-      pos: top + center,
-      dy: 2%,
+      dy: -20.5em,
       label: <fig:wbm-element-counts-by-occurrence>,
       caption: [WBM test set element occurrence],
     ),
     subfigure(
       image(width: 90%, "figs/mbd/mp-trj-element-counts-by-occurrence-symlog.svg"),
-      pos: top + center,
-      dy: 2%,
+      dy: -20.5em,
       label: <fig:mp-trj-element-counts-by-occurrence>,
       caption: [#mptrj training set element occurrence],
     ),
@@ -4398,8 +4371,7 @@ To show how frame selection from MP structure relaxation affected relative eleme
   stack(
     subfigure(
       image("figs/mbd/wbm-mp-ratio-element-counts-by-occurrence.svg"),
-      pos: top + center,
-      dy: 2pt,
+      dy: -23em,
       label: <fig:wbm-mp-ratio-element-counts-by-occurrence>,
       caption: [
         Ratio of elements in WBM dataset to MP (i.e. WBM/MP)
@@ -4407,11 +4379,10 @@ To show how frame selection from MP structure relaxation affected relative eleme
     ),
     subfigure(
       image("figs/mbd/mp-trj-mp-ratio-element-counts-by-occurrence-normalized.svg"),
-      pos: top + center,
-      dy: 2pt,
+      dy: -23em,
       label: <fig:mp-trj-mp-ratio-element-counts-by-occurrence>,
       caption: [
-        Normalized ratio of elements in #mptrj dataset to MP, $"#mptrj / len(#mptrj)" / "MP / len(MP)"$
+        Normalized ratio of elements in #mptrj dataset to MP, $(mptrj "/" "len"(#mptrj)) / ("MP" "/" "len"("MP"))$
       ],
     ),
   ),
@@ -4432,28 +4403,24 @@ Believing #mptrj to be an influential dataset for the near-term continued develo
     gutter: 1em,
     subfigure(
       image("figs/mbd/mp-trj-e-form-hist.svg"),
-      pos: top + left,
-      dy: -3pt,
       label: <fig:mp-trj-e-form-hist>,
+      caption: [#mptrj formation energy distribution],
     ),
     subfigure(
       image("figs/mbd/mp-trj-forces-hist.svg"),
-      pos: top + left,
-      dy: -3pt,
       label: <fig:mp-trj-forces-hist>,
+      caption: [#mptrj force distribution],
     ),
 
     subfigure(
       image("figs/mbd/mp-trj-stresses-hist.svg"),
-      pos: top + left,
-      dy: -3pt,
       label: <fig:mp-trj-stresses-hist>,
+      caption: [#mptrj stress distribution],
     ),
     subfigure(
       image("figs/mbd/mp-trj-magmoms-hist.svg"),
-      pos: top + left,
-      dy: -3pt,
       label: <fig:mp-trj-magmoms-hist>,
+      caption: [#mptrj magnetic moment distribution],
     ),
   ),
   gap: 2em,
@@ -4523,18 +4490,17 @@ The inset displays the same histogram log-scaled y-axis as well as a cumulative 
     gutter: 2em,
     subfigure(
       image("figs/mbd/mp-vs-mp-trj-vs-wbm-arity-hist.svg"),
-      pos: top + left,
-      dy: -1em,
+      caption: [Arity distribution],
+      dy: -5pt,
       label: <fig:mp-vs-mp-trj-vs-wbm-arity-hist>,
     ),
     subfigure(
       image("figs/mbd/mp-trj-n-sites-hist.svg"),
-      pos: top + left,
-      dy: -1em,
+      caption: [Distribution of atoms per structure],
+      dy: -5pt,
       label: <fig:mp-trj-n-sites-hist>,
     ),
   ),
-  gap: -2pt,
   caption: [
     *(a)* Distribution of unique elements per structure in MP, #mptrj and WBM.
     The bar heights are normalized by the total number of structures in each dataset.
@@ -4558,15 +4524,13 @@ Assuming structures of higher arity correlate with larger structures, short rela
       image("figs/mbd/mp-trj-forces-ptable-hists.svg"),
       caption: [Element-wise #mptrj force distributions],
       label: <fig:mp-trj-forces-ptable-hists>,
-      pos: top + center,
-      dy: 1%,
+      dy: -24.5em,
     ),
     subfigure(
       image("figs/mbd/mp-trj-magmoms-ptable-hists.svg"),
       caption: [Element-wise #mptrj magnetic moment distributions],
       label: <fig:mp-trj-magmoms-ptable-hists>,
-      pos: top + center,
-      dy: 1%,
+      dy: -24.5em,
     ),
   ),
   gap: 0pt,
