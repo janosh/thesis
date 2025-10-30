@@ -26,9 +26,7 @@
     placement: placement,
   )
 
-  if caption != "" and separator == none {
-    separator = ":"
-  }
+  if caption != "" and separator == none { separator = ":" }
 
   context {
     let sub-fig-num = subfigure-counter.display(numbering)
@@ -179,9 +177,7 @@
   text(size: 2.2em, weight: 700, title)
 
   v(1cm)
-  if logo != none {
-    image(logo, width: 26%)
-  }
+  if logo != none { image(logo, width: 26%) }
 
   v(5mm)
   text(size: 1.5em, weight: 700, author)
@@ -271,21 +267,13 @@
     .rev()
     .join("")
   // if the number has a decimal part, store it
-  let decimal-part = if parts.len() == 2 {
-    parts.at(1)
-  }
+  let decimal-part = if parts.len() == 2 { parts.at(1) }
   // return the formatted number
   return (integer-part + if decimal-part != none { decimal + decimal-part })
 }
 
-// shared this function with the community
-// https://github.com/typst/typst/issues/3269#issuecomment-2032612522
 #let si-format(val, precision: 1, sep: "\u{202F}", binary: false, num-mode: "suffix") = {
-  let factor = if binary {
-    1024
-  } else {
-    1000
-  }
+  let factor = if binary { 1024 } else { 1000 }
   let gt1-suffixes = ("k", "M", "G", "T", "P", "E", "Z", "Y")
   let lt1-suffixes = ("m", "μ", "n", "p", "f", "a", "z", "y")
   let scale = ""
