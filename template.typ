@@ -1,6 +1,11 @@
 #let subfigure-kind = "subfigure"
 
-#let subfigure-counter = counter(subfigure-kind)
+// Immediate enclosing figure of a subfigure: the nearest preceding figure of
+// any kind (image, table, ...) that is not itself a subfigure. Used to scope
+// the `within` sibling lookup that determines the subfigure letter.
+#let subfigure-parent(loc) = (
+  query(selector(figure).before(loc)).filter(fig => fig.kind != subfigure-kind).last()
+)
 
 #let subfigure(
   body,
@@ -9,13 +14,10 @@
   dy: 6%,
   caption: "",
   numbering: "a)",
-  separator: none,
   label: none,
   supplement: none,
   placement: top,
 ) = {
-  subfigure-counter.step()
-
   let fig = figure(
     body,
     caption: none,
@@ -26,11 +28,16 @@
     placement: placement,
   )
 
-  if caption != "" and separator == none { separator = ":" }
-
   context {
-    let sub-fig-num = subfigure-counter.display(numbering)
-    let caption-content = [#supplement #sub-fig-num#separator #caption]
+    // Letter index = number of preceding subfigures sharing the same parent
+    // figure, found via the `within` selector (Typst 0.15). This replaces a
+    // manually stepped counter that had to be reset by a show rule per parent.
+    let parent = subfigure-parent(here())
+    let preceding = query(
+      figure.where(kind: subfigure-kind).within(parent.location()).before(here()),
+    )
+    let sub-fig-num = std.numbering(numbering, preceding.len() + 1)
+    let caption-content = [#supplement #sub-fig-num #caption]
     return [ #fig#label #place(pos, dx: dx, dy: dy, caption-content) ]
   }
 }
@@ -65,20 +72,17 @@
   show heading.where(level: 1): set heading(supplement: [Chapter])
   // style numbered L1 headings (only increase font size for unnumbered L1 headings)
   show heading: el => {
-    // prefix first-level headings with "Chapter 1,2,..."
     set text(size: 1.3em) // increase font size
-    if el != none and el.func() == heading and el.level == 1 {
-      // only add "Chapter" prefix if the heading is numbered
-      if el.numbering != none {
-        [Chapter ]
-        numbering(el.numbering, ..counter(heading).at(el.location()))
-        v(5pt)
-        block(el.body)
-        v(15pt)
-        return
-      }
+    // prefix numbered first-level headings with "Chapter 1,2,..."
+    if el.level == 1 and el.numbering != none {
+      [Chapter ]
+      numbering(el.numbering, ..counter(heading).at(el.location()))
+      v(5pt)
+      block(el.body)
+      v(15pt)
+    } else {
+      el
     }
-    el
   }
 
   // style tables
@@ -119,34 +123,19 @@
     strong(it)
   }
 
-  // reset subfigure counter when out of the parent figure
-  show figure: itm => {
-    if itm.kind != subfigure-kind {
-      subfigure-counter.update(0)
-    }
-    itm
-  }
-
   // Custom rule for formatting references to subfigures as "Figure 1a)"
   show ref: itm => {
     let elem = itm.element
     // Check if referenced element is a subfigure
     if elem != none and elem.func() == figure and elem.kind == subfigure-kind {
-      // Find all outlined figures before the subfigure's location
-      let outlined-figs-before = query(figure.where(outlined: true).before(elem.location()))
-      // Filter out figures that are tables (kind: table)
-      let actual-figs-before = outlined-figs-before.filter(f => f.kind != table)
-      // The parent figure is the last one in the filtered list
-      let parent-fig = actual-figs-before.last()
-      // Calculate the parent figure number based on its position in the filtered list
-      let parent-num = actual-figs-before.len()
-      // Get the subfigure counter state array at the element's location
-      let subfig-state = subfigure-counter.at(elem.location())
-      // Format the state using the numbering function
-      let subfig-num = numbering(elem.numbering, ..subfig-state)
-      // Note: This assumes standard '1, 2, 3...' numbering for parent figures.
-      // Custom parent numbering formats (e.g., "A.1") won't be replicated here.
-      return [#parent-fig.supplement #parent-num#subfig-num]
+      // Immediate enclosing figure (any kind) gives both the correct supplement
+      // and number: "Figure N" for image parents, "Table N" for table parents.
+      let parent = subfigure-parent(elem.location())
+      let parent-num = counter(figure.where(kind: parent.kind)).at(parent.location()).first()
+      // Letter index = position among subfigures sharing that parent
+      let siblings = query(figure.where(kind: subfigure-kind).within(parent.location()))
+      let subfig-num = numbering(elem.numbering, siblings.position(sub => sub.location() == elem.location()) + 1)
+      return [#parent.supplement #parent-num#subfig-num]
     }
     // Default handling for all other references
     itm
@@ -286,7 +275,7 @@
     } else if val.has("children") {
       val = val.children.map(content => content.text).join()
     } else {
-      panic(val.children.map(content => content.text).join())
+      panic("si-format: cannot extract text from " + repr(val))
     }
   }
   // if val contains a unit, split it off

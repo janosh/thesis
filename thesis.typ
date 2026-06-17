@@ -3090,10 +3090,10 @@ In other words, the force Huber loss is defined as:
 $
   cal(L)_"Huber"^star.op ((partial hat(E)_b) / (partial r_(b,a,i)), F_(b,a,i), delta_F)
   = cases(
-    cal(L)_"Huber" (..., delta_F) & wide "if" med F_(b,a,i) < 100
-    cal(L)_"Huber" (..., 0.7 delta_F) & wide "if" med 100 lt.eq F_(b,a,i) < 200
-    cal(L)_"Huber" (..., 0.4 delta_F) & wide "if" med 200 lt.eq F_(b,a,i) < 300
-    cal(L)_"Huber" (..., 0.1 delta_F) & wide "if" med F_(b,a,i) gt.eq 300
+    cal(L)_"Huber" (..., delta_F) & wide "if" med F_(b,a,i) < 100,
+    cal(L)_"Huber" (..., 0.7 delta_F) & wide "if" med 100 lt.eq F_(b,a,i) < 200,
+    cal(L)_"Huber" (..., 0.4 delta_F) & wide "if" med 200 lt.eq F_(b,a,i) < 300,
+    cal(L)_"Huber" (..., 0.1 delta_F) & wide "if" med F_(b,a,i) gt.eq 300,
   )
 $<eqn:loss-huber-force>
 
@@ -4566,8 +4566,17 @@ Perhaps unsurprising given continuous improvements in model accuracy with increa
 )<tab:metrics-table-uniq-protos-with-closed>
 
 #pagebreak()
-// custom-ieee.csl: less verbose than typst default "ieee" citation style
-#bibliography("refs.bib", style: "custom-ieee.csl")
+// make built-in "ieee" style less verbose (drop volume/issue/page numbers and
+// "Accessed: ... [Online]. Available:" boilerplate) via regex show rules
+// These are brittle text rewrites; replace with native Typst bibliography
+// styling once available https://github.com/typst/typst/issues/942
+#[
+  #show regex("(Accessed:[^\[]*)?\[Online\]\.\s*Available:\s*"): none
+  #show regex(",\s*vol\.\s*\d+"): none
+  #show regex(",\s*no\.\s*\d+"): none
+  #show regex(",\s*pp?\.\s*[\w–\-]+"): none
+  #bibliography("refs.bib", style: "ieee")
+]
 
 // list figures not referenced in the text (shows nothing if there are none)
 // https://github.com/typst/typst/issues/3546
@@ -4590,5 +4599,4 @@ Perhaps unsurprising given continuous improvements in model accuracy with increa
 }
 
 // Typst code formatted with: typstyle --inplace thesis.typ --column 100
-// --column: max width of the output [default: 80]
-// requires: cargo install typstyle
+// requires: cargo install typstyle; --column=max line length [default: 80]
