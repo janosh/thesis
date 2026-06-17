@@ -1,9 +1,7 @@
-#import "@preview/cetz:0.3.4": canvas, draw
+#import "@preview/cetz:0.5.2": canvas, draw
+#import draw: content, line, on-layer, rect
 
 #canvas({
-  import draw: content, line, rect, on-layer
-
-  // Draw dashed enclosure
   rect(
     (-4, -6),
     (4, 3.25),
@@ -13,24 +11,22 @@
     width: 22em,
     height: 12em,
     name: "enclosure",
+    radius: 5pt,
   )
 
   // Enclosure label
-  on-layer(
-    1,
-    content(
-      "enclosure.north",
-      text(weight: "bold", size: 1.2em)[Kohn-Sham method],
-      frame: "rect",
-      stroke: black + .5pt,
-      fill: white,
-      padding: 3pt,
-    ),
-  )
+  on-layer(1, content(
+    "enclosure.north",
+    text(weight: "bold", size: 1.2em)[Kohn-Sham method],
+    frame: "rect",
+    stroke: .5pt,
+    fill: white,
+    padding: 3pt,
+  ))
 
   let box-style = (
     frame: "rect",
-    stroke: black + .5pt,
+    stroke: .5pt,
     fill: rgb("#DCDCDC"),
     padding: 8pt,
     width: 15em,
@@ -50,6 +46,7 @@
     width: 20em,
     name: "initial",
     padding: (3pt, 2em, 0),
+    radius: 1em,
   )
 
   // Potential box
@@ -104,7 +101,6 @@
     padding: (4pt, 2em, 1pt),
   )
 
-  // Draw connecting arrows
   line("initial", "potential", ..arrow-style)
   line("potential", "hamiltonian", ..arrow-style)
   line("hamiltonian", "schrodinger-eq", ..arrow-style)
@@ -119,7 +115,10 @@
     frame: "rect",
     stroke: none,
     anchor: "west",
-    padding: (3pt, 2pt),
+    padding: (
+      3pt,
+      2pt,
+    ),
   )
 
   // No feedback loop

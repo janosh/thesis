@@ -3,9 +3,11 @@
   PhD Thesis
 </h1>
 
-Thesis titled "**Towards Machine Learning Foundation Models for Materials Chemistry**" submitted to the University of Cambridge Department of Physics in April 2024.
+Titled "**Towards Machine Learning Foundation Models for Materials Chemistry**" submitted to the [University of Cambridge Department of Physics](https://www.phy.cam.ac.uk) in April 2024.
 
-> [![Thesis cover](https://github.com/user-attachments/assets/149cdf24-4493-4621-985e-2084a0099ad4)](thesis.pdf)
+Archived in [Apollo repository](https://www.repository.cam.ac.uk/items/77329fb7-cf3a-42e4-a44d-ac3651587b26) ([DOI: 10.17863/CAM.113233](https://doi.org/10.17863/CAM.113233)).
+
+> [![Thesis cover](figs/thesis-cover.svg)](thesis.pdf)
 
 ## Source code
 

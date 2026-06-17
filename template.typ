@@ -1,6 +1,7 @@
 #let subfigure-kind = "subfigure"
 
-#let subfigure-counter = counter(subfigure-kind)
+// Find the nearest preceding non-subfigure to scope sibling lookups.
+#let subfigure-parent(loc) = query(selector(figure).before(loc)).filter(fig => fig.kind != subfigure-kind).last()
 
 #let subfigure(
   body,
@@ -9,13 +10,10 @@
   dy: 6%,
   caption: "",
   numbering: "a)",
-  separator: none,
   label: none,
   supplement: none,
   placement: top,
 ) = {
-  subfigure-counter.step()
-
   let fig = figure(
     body,
     caption: none,
@@ -26,19 +24,19 @@
     placement: placement,
   )
 
-  if caption != "" and separator == none { separator = ":" }
-
   context {
-    let sub-fig-num = subfigure-counter.display(numbering)
-    let caption-content = [#supplement #sub-fig-num#separator #caption]
-    return [ #fig#label #place(pos, dx: dx, dy: dy, caption-content) ]
+    // Letter index = number of preceding subfigures sharing the same parent.
+    let parent = subfigure-parent(here())
+    let preceding = query(figure.where(kind: subfigure-kind).within(parent.location()).before(here()))
+    let sub-fig-num = std.numbering(numbering, preceding.len() + 1)
+    let caption-content = [#supplement #sub-fig-num #caption]
+    [ #fig#label #place(pos, dx: dx, dy: dy, caption-content) ]
   }
 }
 
 #let template(body) = {
-  let body-font = "New Computer Modern"
   set page(margin: 25mm, numbering: "1", number-align: center)
-  set text(font: body-font, size: 11pt, lang: "en")
+  set text(font: "New Computer Modern", size: 11pt, lang: "en")
 
   // equations: reference as "eq. (1)"
   set math.equation(numbering: "(1)", supplement: none)
@@ -65,20 +63,17 @@
   show heading.where(level: 1): set heading(supplement: [Chapter])
   // style numbered L1 headings (only increase font size for unnumbered L1 headings)
   show heading: el => {
-    // prefix first-level headings with "Chapter 1,2,..."
     set text(size: 1.3em) // increase font size
-    if el != none and el.func() == heading and el.level == 1 {
-      // only add "Chapter" prefix if the heading is numbered
-      if el.numbering != none {
-        [Chapter ]
-        numbering(el.numbering, ..counter(heading).at(el.location()))
-        v(5pt)
-        block(el.body)
-        v(15pt)
-        return
-      }
+    // prefix numbered first-level headings with "Chapter 1,2,..."
+    if el.level == 1 and el.numbering != none {
+      [Chapter ]
+      numbering(el.numbering, ..counter(heading).at(el.location()))
+      v(5pt)
+      block(el.body)
+      v(15pt)
+    } else {
+      el
     }
-    el
   }
 
   // style tables
@@ -102,53 +97,24 @@
 
   show figure.caption: cap => {
     set par(leading: 0.85em) // reduce line height in captions
-    if cap.position != top {
-      // caption at figure bottom
-      cap + v(11pt) // add vertical space after caption
-    } else {
-      // caption at figure top
-      cap
-    }
+    if cap.position == top { cap } else { cap + v(11pt) }
   }
   // move table captions above figure (default is below)
   // show figure.where(kind: table): set figure.caption(position: top)
 
   // make top-level ToC entries bold and adjust spacing
-  show outline.entry.where(level: 1): it => {
-    v(1em)
-    strong(it)
-  }
-
-  // reset subfigure counter when out of the parent figure
-  show figure: itm => {
-    if itm.kind != subfigure-kind {
-      subfigure-counter.update(0)
-    }
-    itm
-  }
+  show outline.entry.where(level: 1): it => [#v(1em)#strong(it)]
 
   // Custom rule for formatting references to subfigures as "Figure 1a)"
   show ref: itm => {
     let elem = itm.element
-    // Check if referenced element is a subfigure
     if elem != none and elem.func() == figure and elem.kind == subfigure-kind {
-      // Find all outlined figures before the subfigure's location
-      let outlined-figs-before = query(figure.where(outlined: true).before(elem.location()))
-      // Filter out figures that are tables (kind: table)
-      let actual-figs-before = outlined-figs-before.filter(f => f.kind != table)
-      // The parent figure is the last one in the filtered list
-      let parent-fig = actual-figs-before.last()
-      // Calculate the parent figure number based on its position in the filtered list
-      let parent-num = actual-figs-before.len()
-      // Get the subfigure counter state array at the element's location
-      let subfig-state = subfigure-counter.at(elem.location())
-      // Format the state using the numbering function
-      let subfig-num = numbering(elem.numbering, ..subfig-state)
-      // Note: This assumes standard '1, 2, 3...' numbering for parent figures.
-      // Custom parent numbering formats (e.g., "A.1") won't be replicated here.
-      return [#parent-fig.supplement #parent-num#subfig-num]
+      let parent = subfigure-parent(elem.location())
+      let parent-num = counter(figure.where(kind: parent.kind)).at(parent.location()).first()
+      let siblings = query(figure.where(kind: subfigure-kind).within(parent.location()))
+      let subfig-num = numbering(elem.numbering, siblings.position(sub => sub.location() == elem.location()) + 1)
+      return [#parent.supplement #parent-num#subfig-num]
     }
-    // Default handling for all other references
     itm
   }
 
@@ -232,15 +198,13 @@
 
 #let mp-link(mp-id) = {
   let mp-details-url = "https://materialsproject.org/materials/"
-  let id-pattern = regex("mp-\d+")
+  let id = if type(mp-id) == content { mp-id.text } else { mp-id }
 
-  if type(mp-id) == content and mp-id.text.find(id-pattern) != none {
-    return link(mp-details-url + mp-id.text)[#mp-id]
-  } else if type(mp-id) == str and mp-id.find(id-pattern) != none {
-    return link(mp-details-url + mp-id)[#mp-id]
-  } else if type(mp-id) == int and mp-id > 0 {
-    let full-id = "mp-" + str(mp-id)
-    return link(mp-details-url + full-id, full-id)
+  if type(id) == str and id.find(regex("mp-\d+")) != none {
+    link(mp-details-url + id, mp-id)
+  } else if type(id) == int and id > 0 {
+    let full-id = "mp-" + str(id)
+    link(mp-details-url + full-id, full-id)
   } else {
     panic("Invalid mp-id=", mp-id)
   }
@@ -249,27 +213,16 @@
 // shared this function with the community
 // https://github.com/typst/typst/issues/1093#issuecomment-1881461639
 #let num-fmt(num, decimal: ".", thousands: ",") = {
-  // split the number into integer and decimal parts
   let parts = str(num).split(decimal)
   if parts.len() > 2 {
     panic("Invalid number contains more than 1 decimal: ", num)
   }
-  // reverse the integer part to insert thousands separator
-  let integer-part = parts
-    .at(0)
-    .rev()
-    .clusters()
-    .enumerate()
-    .map(item => {
-      let (idx, value) = item
-      return (value + if calc.rem(idx, 3) == 0 and idx != 0 { thousands })
-    })
-    .rev()
-    .join("")
-  // if the number has a decimal part, store it
-  let decimal-part = if parts.len() == 2 { parts.at(1) }
-  // return the formatted number
-  return (integer-part + if decimal-part != none { decimal + decimal-part })
+  let integer-part = parts.first().rev().clusters().enumerate().map(item => {
+    let (idx, value) = item
+    value + if calc.rem(idx, 3) == 0 and idx != 0 { thousands }
+  }).rev().join("")
+  let decimal-part = parts.at(1, default: none)
+  integer-part + if decimal-part != none { decimal + decimal-part }
 }
 
 #let si-format(val, precision: 1, sep: "\u{202F}", binary: false, num-mode: "suffix") = {
@@ -278,15 +231,14 @@
   let lt1-suffixes = ("m", "μ", "n", "p", "f", "a", "z", "y")
   let scale = ""
   let unit = ""
-  let formatted = ""
 
   if type(val) == content {
-    if val.has("text") {
-      val = val.text
+    val = if val.has("text") {
+      val.text
     } else if val.has("children") {
-      val = val.children.map(content => content.text).join()
+      val.children.map(child => child.text).join()
     } else {
-      panic(val.children.map(content => content.text).join())
+      panic("si-format: cannot extract text from " + repr(val))
     }
   }
   // if val contains a unit, split it off
@@ -295,32 +247,27 @@
     val = float(val.split(unit).at(0))
   }
 
-  if num-mode == "suffix" {
-    if calc.abs(val) > 1 {
-      for suffix in gt1-suffixes {
-        if calc.abs(val) < factor {
-          break
-        }
-        val /= factor
-        scale += " " + suffix
-      }
+  let formatted = if num-mode == "suffix" {
+    let scaling = if calc.abs(val) > 1 {
+      (gt1-suffixes, value => value >= factor, value => value / factor)
     } else if val != 0 and calc.abs(val) < 0.1 {
-      for suffix in lt1-suffixes {
-        if calc.abs(val) > 1 {
-          break
-        }
-        val *= factor
-        scale += " " + suffix
+      (lt1-suffixes, value => value <= 1, value => value * factor)
+    }
+    if scaling != none {
+      let (suffixes, should-scale, scale-value) = scaling
+      for suffix in suffixes {
+        if not should-scale(calc.abs(val)) { break }
+        val = scale-value(val)
+        scale = suffix
       }
     }
-
-    formatted = str(calc.round(val, digits: precision))
+    str(calc.round(val, digits: precision))
   } else if num-mode == "format" {
-    formatted = num-fmt(val)
+    num-fmt(val)
   } else {
     panic("Invalid num-mode: ", num-mode)
   }
-  formatted + sep + scale.split().at(-1, default: "") + unit
+  formatted + sep + scale + unit
 }
 
 #let si0 = si-format.with(precision: 0)

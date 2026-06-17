@@ -1,10 +1,11 @@
-#import "@preview/cetz:0.3.4": canvas, draw
+#import "@preview/cetz:0.5.2": canvas, draw
+#import draw: circle, content, line
 
 #canvas({
-  import draw: line, content, circle, rect
-
-  // Styles
-  let arrow-style = (mark: (end: "stealth", fill: black, scale: 0.5, offset: 2pt), stroke: 0.5pt)
+  let arrow-style = (
+    mark: (end: "stealth", fill: black, scale: 0.5, offset: 2pt),
+    stroke: 0.5pt,
+  )
   let edge-style = (stroke: 0.4pt)
   let node-radius = 0.3
   let graph-sep = 4.5 // separation between input graph and aggregation
@@ -19,20 +20,18 @@
     F: rgb("#ff69b4"), // Pink
   )
 
-  // Helper to draw a node with label
   let draw-node(pos, label, name) = {
     circle(
       pos,
       radius: node-radius,
       fill: colors.at(label),
-      stroke: black + 0.5pt,
+      stroke: 0.5pt,
       name: name,
     )
     content(pos, label, anchor: "center")
   }
 
   // Input Graph (left side)
-  // Define node positions
   let target-pos = (-1.5, 1.2)
   let b-pos = (0.5, 2)
   let c-pos = (1, 1)
@@ -40,7 +39,6 @@
   let e-pos = (-0.25, -1.25)
   let f-pos = (1.5, 0)
 
-  // Draw nodes
   draw-node(target-pos, "A", "target")
   draw-node(b-pos, "B", "b")
   draw-node(c-pos, "C", "c")
@@ -48,11 +46,9 @@
   draw-node(e-pos, "E", "e")
   draw-node(f-pos, "F", "f")
 
-  // Add target node label
   content((rel: (0, 1.5), to: "target"), "Target Node", name: "target-label")
   line("target-label.south", "target", ..arrow-style)
 
-  // Draw edges
   for (start, end) in (
     ("target", "b"),
     ("target", "c"),
@@ -65,7 +61,6 @@
     line(start, end, ..edge-style)
   }
 
-  // Add "Input Graph" label
   content((0.25, -1.8), [Input Graph])
 
   // Main aggregation box
@@ -110,7 +105,6 @@
     line("aggr-" + letter, node, ..arrow-style)
   }
 
-
   // Second layer nodes and connections - renamed to show full path
   let second-layer = (
     // From B-aggregation (B's neighbors)
@@ -125,7 +119,6 @@
     ((2, 0), "A", "aggr-d", "d-to-a"),
   )
 
-  // Draw second layer nodes and arrows
   for ((dx, dy), label, parent, name) in second-layer {
     draw-node((rel: (dx, dy), to: parent), label, name)
     line(name, parent + ".east", ..arrow-style)

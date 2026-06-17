@@ -1,18 +1,15 @@
-#import "@preview/cetz:0.3.4": canvas, draw
+#import "@preview/cetz:0.5.2": canvas, draw
+#import draw: circle, content, line
 
 #let range = 9
 #let xy-ratio = 2 / 3
 
 #canvas({
-  import draw: line, content, circle
-
   let arrow-style = (mark: (end: "stealth", scale: .75), stroke: black + 1pt, fill: black)
 
-  // Draw axes
   line((-0.5, 0), (range, 0), ..arrow-style) // x-axis
   line((0, -0.5), (0, range * xy-ratio), ..arrow-style) // y-axis
 
-  // Add axis labels
   content(
     (range + 0.1, .15),
     [computational complexity],
@@ -33,12 +30,11 @@
     )
   }
 
-  // Add dashed diagonal line
-  line(
-    (0, 0),
-    (range, range * xy-ratio),
-    stroke: (dash: "dashed", paint: gray, thickness: .75pt),
-  )
+  line((0, 0), (range, range * xy-ratio), stroke: (
+    dash: "dashed",
+    paint: gray,
+    thickness: .75pt,
+  ))
 
   // Data points with labels
   let methods = (
@@ -49,7 +45,6 @@
     (7, "Coupled Cluster", "CCSD(T)"),
   )
 
-  // Draw blue dots for standard methods
   for (x, name, abbr) in methods {
     circle(
       (x, x * xy-ratio),

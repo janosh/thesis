@@ -1,9 +1,7 @@
 #import "template.typ": (
   mp-link, num-fmt, ord, par-heading, percent, remark, si0, si1, si4, subfigure, template, title-page,
 )
-#import "@preview/xarrow:0.3.1": xarrow
-#import "@preview/cetz:0.4.2": canvas
-#import "@preview/cetz-plot:0.1.3": plot
+#import "@preview/xarrow:0.4.0": xarrow
 // https://github.com/schang412/typst-whalogen
 // ce(str) used to render chemical formulas
 #import "@preview/whalogen:0.3.0": ce
@@ -848,53 +846,14 @@ This sidesteps the time-consuming process of handcrafting bespoke features for e
 Since deep learning representations are not limited by domain knowledge and human intuition, they simultaneously lift the ceiling on feature fidelity and expressiveness.
 Empirically, end-to-end learned representations generally outperform hand-crafted features once training data exceeds a domain-dependent threshold, often on the order of $gt.tilde #ord(4)$ samples @chauhan_comparison_2019 @goodall_predicting_2020 @benkendorf_effects_2020 @cho_how_2016.
 
-#let size = (9, 5)
-#let relu(x) = calc.max(0, x)
-#let gelu(x) = 0.5 * x * (1 + calc.tanh(calc.sqrt(2 / calc.pi) * (x + 0.044715 * calc.pow(x, 3))))
-#let leaky-relu(x) = calc.max(0.05 * x, x)
-}
-#let sigmoid(x) = 1 / (1 + calc.exp(-x))
-#let tanh(x) = (calc.exp(x) - calc.exp(-x)) / (calc.exp(x) + calc.exp(-x))
-
 #figure(
-  canvas({
-    plot.plot(
-      size: size,
-      y-tick-step: 2,
-      x-tick-step: 2,
-      x-grid: true,
-      y-grid: true,
-      legend: "inner-north-west",
-      legend-style: (item: (spacing: 0.2), stroke: none, fill: rgb(255, 255, 255, 150)),
-      {
-        plot.add-hline(0, style: (stroke: 0.5pt))
-        plot.add-vline(0, style: (stroke: 0.5pt))
-        for (key, (func, color, ref)) in (
-          "ReLU": (relu, red, <fukushima_cognitron_1975>),
-          "GELU": (gelu, blue, <hendrycks_gaussian_2023>),
-          "Leaky ReLU": (leaky-relu, green, <maas_rectifier_2013>),
-          "Sigmoid": (sigmoid, orange, <han_influence_1995>),
-          "Tanh": (tanh, purple, none),
-        ).pairs() {
-          plot.add(
-            style: (stroke: color + 1.5pt),
-            domain: (-4, 4),
-            func,
-            label: key
-              + if ref != none {
-                " " + cite(ref)
-              },
-          )
-        }
-      },
-    )
-  }),
+  include "figs/intro/ml-activations.typ",
   caption: [
     Popular ML activation functions.
-    $"ReLU"(vector(x)) = vector(x)^+ = max(vector(x), 0)$ is the most widely used due to its simplicity and computational efficiency.
-    $"GELU"(vector(x), mu=0, sigma=1) = vector(x) / 2 (1 + op("erf") (vector(x) \/ sqrt(2)))$ is a differentiable variant of ReLU.
-    $"Leaky ReLU"(vector(x)) = max(0, vector(x)) + alpha dot min(0, vector(x))$ with $alpha < 0$ adds a small gradient for negative activations.
-    $"Sigmoid"(vector(x)) = (1 + exp(-vector(x)))^(-1)$ smoothly squashes the input to the range $(0, 1)$.
+    $"ReLU"(vector(x)) = vector(x)^+ = max(vector(x), 0)$ @fukushima_cognitron_1975 is the most widely used due to its simplicity and computational efficiency.
+    $"GELU"(vector(x), mu=0, sigma=1) = vector(x) / 2 (1 + op("erf") (vector(x) \/ sqrt(2)))$ @hendrycks_gaussian_2023 is a differentiable variant of ReLU.
+    $"Leaky ReLU"(vector(x)) = max(0, vector(x)) + alpha dot min(0, vector(x))$ with $alpha < 0$ @maas_rectifier_2013 adds a small gradient for negative activations.
+    $"Sigmoid"(vector(x)) = (1 + exp(-vector(x)))^(-1)$ @han_influence_1995 smoothly squashes the input to the range $(0, 1)$.
     $"Tanh"(vector(x)) = (exp(vector(x))+exp(vector(−x))) / (vector(exp(x))−exp(vector(−x)))$ is a scaled and shifted cousin of the sigmoid function.
     #link("https://github.com/janosh/diagrams/blob/-/assets/ml-activations/ml-activations.typ")[Diagram available on GitHub] @riebesell_diagrams_2022.
   ],
@@ -3090,10 +3049,10 @@ In other words, the force Huber loss is defined as:
 $
   cal(L)_"Huber"^star.op ((partial hat(E)_b) / (partial r_(b,a,i)), F_(b,a,i), delta_F)
   = cases(
-    cal(L)_"Huber" (..., delta_F) & wide "if" med F_(b,a,i) < 100
-    cal(L)_"Huber" (..., 0.7 delta_F) & wide "if" med 100 lt.eq F_(b,a,i) < 200
-    cal(L)_"Huber" (..., 0.4 delta_F) & wide "if" med 200 lt.eq F_(b,a,i) < 300
-    cal(L)_"Huber" (..., 0.1 delta_F) & wide "if" med F_(b,a,i) gt.eq 300
+    cal(L)_"Huber" (..., delta_F) & wide "if" med F_(b,a,i) < 100,
+    cal(L)_"Huber" (..., 0.7 delta_F) & wide "if" med 100 lt.eq F_(b,a,i) < 200,
+    cal(L)_"Huber" (..., 0.4 delta_F) & wide "if" med 200 lt.eq F_(b,a,i) < 300,
+    cal(L)_"Huber" (..., 0.1 delta_F) & wide "if" med F_(b,a,i) gt.eq 300,
   )
 $<eqn:loss-huber-force>
 
@@ -4566,8 +4525,17 @@ Perhaps unsurprising given continuous improvements in model accuracy with increa
 )<tab:metrics-table-uniq-protos-with-closed>
 
 #pagebreak()
-// custom-ieee.csl: less verbose than typst default "ieee" citation style
-#bibliography("refs.bib", style: "custom-ieee.csl")
+// make built-in "ieee" style less verbose (drop volume/issue/page numbers and
+// "Accessed: ... [Online]. Available:" boilerplate) via regex show rules
+// These are brittle text rewrites; replace with native Typst bibliography
+// styling once available https://github.com/typst/typst/issues/942
+#[
+  #show regex("(Accessed:[^\[]*)?\[Online\]\.\s*Available:\s*"): none
+  #show regex(",\s*vol\.\s*\d+"): none
+  #show regex(",\s*no\.\s*\d+"): none
+  #show regex(",\s*pp?\.\s*[\w–\-]+"): none
+  #bibliography("refs.bib", style: "ieee")
+]
 
 // list figures not referenced in the text (shows nothing if there are none)
 // https://github.com/typst/typst/issues/3546
@@ -4590,5 +4558,4 @@ Perhaps unsurprising given continuous improvements in model accuracy with increa
 }
 
 // Typst code formatted with: typstyle --inplace thesis.typ --column 100
-// --column: max width of the output [default: 80]
-// requires: cargo install typstyle
+// requires: cargo install typstyle; --column=max line length [default: 80]
